@@ -1,2 +1,2 @@
 # OSoRi_Repository
-KH 파이널 프로젝트 레파지토리
+오(O)늘의 소(So)비 리(Ri)포트
