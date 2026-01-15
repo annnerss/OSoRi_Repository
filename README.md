@@ -41,9 +41,9 @@ $ npm start
 # 4. Tasks & Responsibilities (작업 및 역할 분담)
 |  |  |  |
 |-----------------|-----------------|-----------------|
-| 서채원    |  <img src="https://github.com/user-attachments/assets/c1c2b1e3-656d-4712-98ab-a15e91efa2da" alt="서채원" width="100"> | <ul><li>프로젝트 계획 및 관리</li><li>팀 리딩 및 커뮤니케이션</li><li>커스텀훅 개발</li></ul>     |
-| 전성중   |  <img src="https://avatars.githubusercontent.com/u/223277907?v=4" alt="전성중" width="100">| <ul>li>ㅇ</li></ul> |
-| 조수인   |  <img src="https://avatars.githubusercontent.com/u/250043719?v=4" alt="조수인" width="100">    |<ul><liㅇㅇ</li></ul>  |
+| 서채원    |  <img src="https://github.com/user-attachments/assets/c1c2b1e3-656d-4712-98ab-a15e91efa2da" alt="서채원" width="100"> | <ul><li>프로젝트 계획 및 관리</li><li>팀 리딩 및 커뮤니케이션</li><li>개인/공동 관리 가계부 생성 로직</li><li>그룹 이메일 초대/수락/거절 로직</li><li>N분의 1 정산 로직</li><li>지줄/정산/그룹 초대 요청 알림</li></ul>     |
+| 전성중   |  <img src="https://avatars.githubusercontent.com/u/223277907?v=4" alt="전성중" width="100">| <ul><li>ㅇ</li></ul> |
+| 조수인   |  <img src="https://avatars.githubusercontent.com/u/250043719?v=4" alt="조수인" width="100">    |<ul><li>ㅇ</li></ul>  |
 | 강민채    |  <img src="https://avatars.githubusercontent.com/u/216668731?v=4" alt="강민채" width="100">    | <ul><li>ㅇ</li></ul>    |
 
 <br/>
@@ -55,8 +55,8 @@ $ npm start
 |-----------------|-----------------|
 | CSS    |  <img src="https://img.shields.io/badge/CSS-239120?&style=for-the-badge&logo=css3&logoColor=white" alt="CSS" width="100"> | ?    |
 | JavaScript    |  <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=JavaScript&logoColor=white" alt="JavaScript" width="100"> | ?    |
-https://github.com/envoy1084/awesome-badges
 
+https://github.com/envoy1084/awesome-badges
 <br/>
 
 ## 5.2 Frotend
@@ -154,10 +154,8 @@ const getEnginList = () => {...}
 
 ## 태그 네이밍
 Styled-component태그 생성 시 아래 네이밍 규칙을 준수하여 의미 전달을 명확하게 한다.<br/>
-태그명이 길어지더라도 의미 전달의 명확성에 목적을 두어 작성한다.<br/>
 전체 영역: Container<br/>
 영역의 묶음: {Name}Area<br/>
-의미없는 태그: <><br/>
 ```
 <Container>
   <ContentsArea>
