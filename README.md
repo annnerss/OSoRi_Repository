@@ -45,7 +45,7 @@ $ npm start
 | 전성중   |  <img src="https://avatars.githubusercontent.com/u/223277907?v=4" alt="전성중" width="100">| <ul><li>회원 가입 및 로그인(소셜 로그인 포함)</li>
 <li>회원 상태에 따른 서비스 제한</li> <li>오늘의 지출 및 이번 달 남은 예산 조회</li> <li>환율 즐겨찾기(찜 목록)</li></ul> |
 | 조수인   |  <img src="https://avatars.githubusercontent.com/u/250043719?v=4" alt="조수인" width="100">    |<ul><li>월별/카테고리별 지출 분석 리포트, 전월 대비 소비 증감률 분석 리포트 제공</li> <li>월별 예산 계획과 초과 시 경고, 월별 고정 지출 관리</li> <li>기간, 금액, 내용, 카테고리 별 복합 검색 및 캘린더 뷰 제공</li></ul>  |
-| 강민채    |  <img src="https://avatars.githubusercontent.com/u/216668731?v=4" alt="강민채" width="100">    | <ul><li>ㅇ</li></ul>    |
+| 강민채    |  <img src="https://avatars.githubusercontent.com/u/216668731?v=4" alt="강민채" width="100">    | <ul><li>네이버 클로바 api 불러오기</li><li>카카오 local api 불러오기</li></ul>    |
 
 <br/>
 <br/>
