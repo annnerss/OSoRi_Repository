@@ -43,7 +43,7 @@ $ npm start
 |-----------------|-----------------|-----------------|
 | 서채원    |  <img src="https://avatars.githubusercontent.com/u/250162373?s=400&u=59aa0a768a3383c0fdbf0a71b1e54e56bcff3ff5&v=4" alt="서채원" width="100"> | <ul><li>프로젝트 계획 및 관리</li><li>팀 리딩 및 커뮤니케이션</li><li>개인/공동 관리 가계부 생성 로직</li><li>그룹 이메일 초대/수락/거절 로직</li><li>N분의 1 정산 로직</li><li>지줄/정산/그룹 초대 요청 알림</li></ul>     |
 | 전성중   |  <img src="https://avatars.githubusercontent.com/u/223277907?v=4" alt="전성중" width="100">| <ul><li>ㅇ</li></ul> |
-| 조수인   |  <img src="https://avatars.githubusercontent.com/u/250043719?v=4" alt="조수인" width="100">    |<ul><li>ㅇ</li></ul>  |
+| 조수인   |  <img src="https://avatars.githubusercontent.com/u/250043719?v=4" alt="조수인" width="100">    |<ul><li>월별/카테고리별 지출 분석, 전월 대비 소비 증감률 분석 리포트 제공</li> <li>월별 예산 계획과 초과 시 경고, 월별 고정 지출 관리</li> <li>월별 캘린더 뷰, 리스트 뷰 제공, 기간 금액, 내용, 카테고리 별 복합 검색</li></ul>  |
 | 강민채    |  <img src="https://avatars.githubusercontent.com/u/216668731?v=4" alt="강민채" width="100">    | <ul><li>ㅇ</li></ul>    |
 
 <br/>
