@@ -20,7 +20,7 @@ $ npm start
 # 2. Team Members (팀원 및 팀 소개)
 | 서채원 | 전성중 | 조수인 | 강민채 |
 |:------:|:------:|:------:|:------:|
-| <img src="https://avatars.githubusercontent.com/u/250162373?v=4" alt="서채원" width="150"> | <img src="https://avatars.githubusercontent.com/u/223277907?v=4" alt="전성중" width="150"> | <img src="https://avatars.githubusercontent.com/u/250043719?v=4" alt="조수인" width="150"> | <img src="https://avatars.githubusercontent.com/u/216668731?v=4" alt="강민채" width="150"> |
+| <img src="https://avatars.githubusercontent.com/u/250162373?s=400&u=59aa0a768a3383c0fdbf0a71b1e54e56bcff3ff5&v=4" alt="서채원" width="150"> | <img src="https://avatars.githubusercontent.com/u/223277907?v=4" alt="전성중" width="150"> | <img src="https://avatars.githubusercontent.com/u/250043719?v=4" alt="조수인" width="150"> | <img src="https://avatars.githubusercontent.com/u/216668731?v=4" alt="강민채" width="150"> |
 | PL | FE | FE | FE |
 | [GitHub](https://github.com/annnerss) | [GitHub](https://github.com/jsj0345) | [GitHub](https://github.com/jsi4770) | [GitHub](https://github.com/minchaeee514) |
 
@@ -41,7 +41,7 @@ $ npm start
 # 4. Tasks & Responsibilities (작업 및 역할 분담)
 |  |  |  |
 |-----------------|-----------------|-----------------|
-| 서채원    |  <img src="https://avatars.githubusercontent.com/u/250162373?v=4" alt="서채원" width="100"> | <ul><li>프로젝트 계획 및 관리</li><li>팀 리딩 및 커뮤니케이션</li><li>개인/공동 관리 가계부 생성 로직</li><li>그룹 이메일 초대/수락/거절 로직</li><li>N분의 1 정산 로직</li><li>지줄/정산/그룹 초대 요청 알림</li></ul>     |
+| 서채원    |  <img src="https://avatars.githubusercontent.com/u/250162373?s=400&u=59aa0a768a3383c0fdbf0a71b1e54e56bcff3ff5&v=4" alt="서채원" width="100"> | <ul><li>프로젝트 계획 및 관리</li><li>팀 리딩 및 커뮤니케이션</li><li>개인/공동 관리 가계부 생성 로직</li><li>그룹 이메일 초대/수락/거절 로직</li><li>N분의 1 정산 로직</li><li>지줄/정산/그룹 초대 요청 알림</li></ul>     |
 | 전성중   |  <img src="https://avatars.githubusercontent.com/u/223277907?v=4" alt="전성중" width="100">| <ul><li>ㅇ</li></ul> |
 | 조수인   |  <img src="https://avatars.githubusercontent.com/u/250043719?v=4" alt="조수인" width="100">    |<ul><li>ㅇ</li></ul>  |
 | 강민채    |  <img src="https://avatars.githubusercontent.com/u/216668731?v=4" alt="강민채" width="100">    | <ul><li>ㅇ</li></ul>    |
