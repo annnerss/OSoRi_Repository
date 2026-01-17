@@ -42,8 +42,9 @@ $ npm start
 |  |  |  |
 |-----------------|-----------------|-----------------|
 | 서채원    |  <img src="https://avatars.githubusercontent.com/u/250162373?s=400&u=59aa0a768a3383c0fdbf0a71b1e54e56bcff3ff5&v=4" alt="서채원" width="100"> | <ul><li>프로젝트 계획 및 관리</li><li>팀 리딩 및 커뮤니케이션</li><li>메인 페이지 구현</li><li>마이 페이지 - 진행중인 가계부 목록/이전 가계부 목록 조회 기능 구현</li><li>그룹 가계부 이메일로 회원 초대 기능 구현</li><li>실시간 그룹 가계부 초대 요청 알림 수락/거절 기능 구현</li><li>챌린지 목록 조회/참여 기능 구현</li><li>그룹 가계부 상세 페이지 구현</li><li>그룹 가계부 수입/지출 내역 목록 조회/삭제 기능 구현</li><li>가계부 관리자 기능 구현(예산 금액 수정, 멤버 추가/삭제, 가계부 삭제)</li><li>N분의 1 정산 로직</li><li>수입/지출 내역 추가시 실시간 알림 기능)</li></ul>     |
-| 전성중   |  <img src="https://avatars.githubusercontent.com/u/2232현</li></ul>    |
-
+| 전성중   |  <img src="https://avatars.githubusercontent.com/u/223277907?v=4" alt="전성중" width="100">| <ul><li>회원 가입 및 로그인(소셜 로그인 포함,api 불러오기)</li><li>회원 상태에 따른 서비스 제한</li><li>오늘의 지출 및 이번 달 남은 예산 조회</li></ul> |
+| 조수인   |  <img src="https://avatars.githubusercontent.com/u/250043719?v=4" alt="조수인" width="100">    |     <ul><li>월별/카테고리별 지출 분석 리포트, 전월 대비 소비 증감률 분석 리포트 제공</li> <li>월별 예산 계획과 초과 시 경고, 월별 고정 지출 관리</li> <li>기간, 금액, 내용, 카테고리 별 복합 검색 및 캘린더 뷰 제공</li></ul>  |
+| 강민채    |  <img src="https://avatars.githubusercontent.com/u/216668731?v=4" alt="강민채" width="100">    | <ul><li>네이버 클로바 api 불러오기</li><li>카카오 local api 불러오기</li></ul>    |
 <br/>
 <br/>
 
