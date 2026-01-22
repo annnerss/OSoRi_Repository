@@ -1,0 +1,142 @@
+.wrap{
+  width: 100%;
+  background: #fff;
+}
+
+
+.title{
+  text-align: center;
+  font-size: 22px;
+  font-weight: 800;
+  margin: 6px 0 22px;
+}
+
+.form{
+  display: grid;
+  gap: 14px;
+}
+
+.field{
+  display: grid;
+  gap: 8px;
+}
+
+.label{
+  font-size: 14px;
+  font-weight: 700;
+  color: #111;
+}
+
+.input{
+  height: 50px;
+  border: 1px solid #e6e6e6;
+  border-radius: 8px;
+  padding: 0 14px;
+  outline: none;
+}
+
+.input:focus{
+  border-color: #bdbdbd;
+}
+
+.remember{
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  font-size: 14px;
+  color: #111;
+  margin-top: -6px;
+}
+
+.loginBtn{
+  height: 64px;
+  border: none;
+  border-radius: 999px;
+  background: #111;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 900;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.simpleArea{
+  text-align: center;
+  margin-top: 16px;
+}
+
+.simpleTitle{
+  font-size: 14px;
+  color: #555;
+  margin: 12px 0 12px;
+}
+
+/* ✅ 소셜 버튼 크기 + 아이콘 크게 */
+.socialRow{
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 10px;
+}
+
+.socialBtn{
+  width: 64px;
+  height: 64px;
+  border-radius: 999px;
+  border: 0;
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.socialBtn svg{
+  display: block;
+}
+
+.kakao{ background: #fee500; }
+.naver{ background: #03c75a; }
+.payco{ background: #ef2b2a; }
+
+/* 아이콘 사이즈 */
+.kakao svg{
+  width: 42px;
+  height: 42px;
+  transform: translateY(1px);
+}
+
+.naver svg{
+  width: 40px;
+  height: 40px;
+  fill: #fff;
+  transform: translateY(1px);
+}
+
+.paycoText{
+  display: block;
+  color: #fff;
+  font-size: 26px;
+  font-weight: 900;
+  line-height: 1;
+  transform: translateY(1px);
+}
+
+/* 아래 버튼 */
+.bottomRow{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.subBtn{
+  height: 52px;
+  border-radius: 999px;
+  border: 1px solid #d9d9d9;
+  background: #fff;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
