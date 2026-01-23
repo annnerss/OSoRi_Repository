@@ -1,0 +1,107 @@
+.calendar-card, .detail-card {
+  background: var(--card-bg, #ffffff);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: var(--shadow, 0 10px 20px rgba(0,0,0,0.05));
+  margin-bottom: 20px;
+}
+
+.calendar-header {
+  text-align: center;
+  margin-bottom: 15px;
+  font-size: 1.2rem;
+}
+
+.saturday {
+  color: #3b82f6 !important; 
+}
+
+.react-calendar {
+  width: 100% !important;
+  border: none !important;
+  font-family: inherit;
+}
+
+.react-calendar__tile--now {
+  background: #f1f2f6 !important;
+  border-radius: 10px;
+  color: var(--primary-color) !important;
+}
+
+.react-calendar__tile--active {
+  background: var(--primary-color, #0066ff) !important;
+  border-radius: 10px;
+  color: white !important;
+}
+
+/* 선택된 날짜 수입/지출 태그의 색상을 강제로 흰색으로 변경 */
+.react-calendar__tile--active .income-tag,
+.react-calendar__tile--active .expense-tag {
+  color: white !important;
+}
+
+.react-calendar__tile {
+  height: 75px !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 10px !important;
+  position: relative;
+}
+
+.detail-title {
+  font-size: 1.1rem;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #f8f9fa;
+}
+
+.detail-list { list-style: none; padding: 0 10px; }
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #f8f9fa;
+  gap : 15px;
+}
+
+.amount-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin-top: 2px;
+  line-height: 1.2;
+}
+
+.income-tag {
+  color: var(--income-color, #2ecc71); /* 변수가 없으면 기본 초록색 */
+  font-size: 0.65rem;
+  font-weight: bold;
+  white-space: nowrap;/
+}
+
+/* 지출 합계 스타일 (빨간색) */
+.expense-tag {
+  color: var(--expense-color, #e74c3c); /* 변수가 없으면 기본 빨간색 */
+  font-size: 0.65rem;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.item-info { display: flex; flex-direction: column; flex : 1;  text-align: left;}
+.item-category { font-weight: bold; font-size: 0.95rem; }
+.item-memo { font-size: 0.8rem; color: #888;}
+.item-amount { font-weight: bold; min-width: 100px;}
+
+.income .item-amount { color: var(--income-color, #2ecc71); }
+.expense .item-amount { color: var(--expense-color, #e74c3c); }
+
+.no-data { text-align: center; color: #aaa; padding: 20px 0; }
+
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
