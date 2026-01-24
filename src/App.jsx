@@ -6,6 +6,7 @@ import CalendarView from './features/auth/pages/CalendarView';
 import MyBadges from './features/auth/pages/MyBadges';
 import ProfileSettings from './features/auth/pages/ProfileSettings';
 import { transactions } from './Data/mockData'; //목업 수입지출데이터
+import ExpenseForm from './features/auth/pages/ExpenseForm';
 
 function App() {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -23,7 +24,8 @@ function App() {
                                                 setCurrentDate={setCurrentDate}
                                               />} />
           <Route path="myBadges" element={<MyBadges />} />
-          <Route path="profileSettings" element={<ProfileSettings />} />
+          <Route path="profileSettings" element={<ProfileSettings />}/>
+          <Route path='expenseForm' element={<ExpenseForm/>}/>
         </Route>
       </Routes>
     </Router>

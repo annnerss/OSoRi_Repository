@@ -28,7 +28,7 @@ const MyPage = () => {
         {/* 가계부 섹션 */}
         <div className="account-book-grid">
           {/* 개인 가계부 관리 */}
-          <div className="info-card" /* onClick={상세보기 페이지로} */>
+          <div className="info-card"  onClick={()=>navigate('/mypage/expenseForm')} >
             <div className="card-title-area">
               <h3>🏠 내 가계부</h3>
             </div>
