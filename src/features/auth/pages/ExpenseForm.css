@@ -158,7 +158,11 @@ form {
   background-color: #fff;
   transition: all 0.2s;
   box-sizing: border-box;
+  font-family: inherit; 
+  font-size: 1rem; 
+  color: #333;
 }
+
 
 input[type="number"].input-field {
   padding-right: 50px; 

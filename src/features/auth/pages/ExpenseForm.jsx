@@ -124,10 +124,16 @@ const ExpenseForm = ({ mode = 'personal', groupId }) => {
           transDate: formattedDate,
           originalAmount: originalAmount || '',
           category: matchedCategory,
-          type: '지출'
+          type: '지출',
+          memo: ''
         }));
+
+        setTimeout(() => {
+            alert("입력된 정보가 맞는지 확인해주세요");
+        }, 100);
         
       }
+
     } catch (error) {
       console.error("OCR Error:", error);
       alert("영수증 분석에 실패했습니다. 직접 입력해주세요.");
@@ -168,7 +174,21 @@ const ExpenseForm = ({ mode = 'personal', groupId }) => {
 
       alert("저장되었습니다!");
       
-      // 저장 후 폼 초기화 로직 추가
+      // 저장 후 폼 초기화
+      setFormData(prev => ({
+        ...prev,
+        transDate: '',
+        title: '',
+        originalAmount: '',
+        category: prev.type === '수입' ? INCOME_CATEGORIES[0] : EXPENSE_CATEGORIES[0],
+        memo: ''
+      }));
+
+      setPreviewUrl(null);
+
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
 
     } catch (error) {
       console.error("Save Error:", error);
