@@ -1,16 +1,16 @@
-import React, { useState } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import MainPage from "./components/common/MainPage";
-import MyPageLayout from "./features/auth/pages/MyPageLayout";
-import MyPage from "./features/auth/pages/MyPage";
-import CalendarView from "./features/menu/CalendarView";
-import MyBadges from "./features/auth/pages/MyBadges";
-import ProfileSettings from "./features/auth/pages/ProfileSettings";
-import AuthLayout from "./layouts/AuthLayout";
-import LoginPage from "./features/auth/pages/LoginPage";
-import RegisterPage from "./features/auth/pages/RegisterPage";
-import PrivateRoute from "./routes/PrivateRoute";
+import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import MainPage from './components/common/MainPage'
+import MyPageLayout from './features/auth/pages/MyPageLayout';
+import MyPage from './features/auth/pages/MyPage';
+import CalendarView from './features/menu/CalendarView';
+import MyBadges from './features/auth/pages/MyBadges';
+import ProfileSettings from './features/auth/pages/ProfileSettings';
 import { transactions } from './Data/mockData'; //목업 수입지출데이터
+import AuthLayout from './layouts/AuthLayout';
+import PrivateRoute from './routes/PrivateRoute';
+import RegisterPage from './features/auth/pages/RegisterPage';
+import LoginPage from './features/auth/pages/LoginPage';
 import ExpenseForm from './features/auth/pages/ExpenseForm';
 import MyAccountBook from "./features/auth/pages/MyAccountBook";
 
@@ -45,7 +45,7 @@ function App() {
                                                 setCurrentDate={setCurrentDate}
                                               />} />
           <Route path="myBadges" element={<MyBadges />} />
-          <Route path="profileSettings" element={<ProfileSettings />}/>
+          <Route path="profileSettings" element={<ProfileSettings />} />
           <Route path='expenseForm' element={<ExpenseForm/>}/>
           <Route path='myAccountBook' element={<MyAccountBook/>}/>
         </Route>
