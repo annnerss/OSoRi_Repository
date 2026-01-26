@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import './ExpenseForm.css';
+import transApi from '../../../api/transApi';
 
 const EXPENSE_CATEGORIES = [
   "식비", "생활/마트", "쇼핑", "의료/건강", 
@@ -12,7 +13,7 @@ const INCOME_CATEGORIES = [
 ];
 
 
-const ExpenseForm = () => {
+const ExpenseForm = ({ mode = 'personal', groupId }) => {
 
    // 현재 모드에 따라 보여줄 카테고리 리스트 결정
   const [currentCategories, setCurrentCategories] = useState(EXPENSE_CATEGORIES);
@@ -20,6 +21,7 @@ const ExpenseForm = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef(null);
+
   const [formData, setFormData] = useState({
     type: '지출',
     transDate: '',      
@@ -106,9 +108,7 @@ const ExpenseForm = () => {
     setIsLoading(true);
 
     try {
-      const response = await axios.post('http://localhost:8080/osori/api/ocr', serverFormData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      const response = await receiptApi.receiptAnalyze(serverFormData);
 
       if (response.data) {
         const { storeName, transDate, amount, category } = response.data;
@@ -142,9 +142,29 @@ const ExpenseForm = () => {
     }
 
     try {
-      await axios.post('http://localhost:8080/osori/api/account/save', formData);
+      // 그룹 모드
+      if (mode === 'group') {
+        if (!groupId) {
+          alert("그룹 정보가 없습니다! (groupId missing)");
+          return;
+        }
+        
+        // groupId 데이터에 추가
+        const groupData = { ...formData, groupId: groupId };
+        
+        
+      } else {
+        // 개인 모드
+
+        await transApi.myTransSave(formData);
+
+      }
+
       alert("저장되었습니다! 💾");
-      // 저장 후 폼 초기화 로직 추가
+      
+      // 저장 후 초기화 (선택 사항)
+      // setFormData({ ...formData, title: '', originalAmount: '', memo: '' });
+      // setPreviewUrl(null);
 
     } catch (error) {
       console.error("Save Error:", error);
@@ -263,7 +283,6 @@ const ExpenseForm = () => {
             </select>
           </div>
 
-          {/* 메모 */}
           <div className="input-group">
             <label className="input-label">메모</label>
             <textarea 
