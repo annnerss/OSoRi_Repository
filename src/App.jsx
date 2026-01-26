@@ -1,17 +1,20 @@
-import React from "react";
+import React, { useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import MainPage from "./components/common/MainPage";
 import MyPageLayout from "./features/auth/pages/MyPageLayout";
 import MyPage from "./features/auth/pages/MyPage";
-import CalendarView from "./features/auth/pages/CalendarView";
+import CalendarView from "./features/menu/CalendarView";
 import MyBadges from "./features/auth/pages/MyBadges";
 import ProfileSettings from "./features/auth/pages/ProfileSettings";
 import AuthLayout from "./layouts/AuthLayout";
 import LoginPage from "./features/auth/pages/LoginPage";
 import RegisterPage from "./features/auth/pages/RegisterPage";
 import PrivateRoute from "./routes/PrivateRoute";
+import { transactions } from './Data/mockData'; //목업 수입지출데이터
+
 
 function App() {
+  const [currentDate, setCurrentDate] = useState(new Date());
   return (
     <Router>
       <Routes>
