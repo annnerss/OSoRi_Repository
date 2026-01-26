@@ -188,9 +188,41 @@
 .item-memo { font-size: 15px; color: #888; }
 .item-amount { font-family: 'Pretendard', sans-serif; font-weight: bold; min-width: 85px; text-align: right; font-size: 15px; }
 
-/* 반응형 */
+/* 반응형 부분 수정 */
 @media (max-width: 1200px) {
-  .calendar-page-container { height: auto; overflow: visible; }
-  .calendar-content-wrapper { flex-direction: column; height: auto; }
-  .calendar-card, .detail-card { width: 100%; flex: none; }
+  .calendar-page-container {
+    height: auto; 
+    overflow: visible; 
+    padding: 15px; /* 모바일에서 여백 살짝 조정 */
+  }
+
+  .calendar-content-wrapper {
+    flex-direction: column;
+    height: auto;
+    gap: 15px;
+  }
+
+  .calendar-card {
+    width: 100%;
+    flex: none;
+    /* 달력 높이가 너무 작아지지 않게 최소 높이 유지 */
+    min-height: 450px; 
+  }
+
+  .detail-card {
+    width: 100%;
+    flex: none;
+    /* 핵심: 상세 내역 카드의 최대 높이를 제한 */
+    max-height: 400px; 
+    display: flex;
+    flex-direction: column;
+  }
+
+  .detail-list-container {
+    /* 부모인 detail-card가 flex이므로 남은 공간을 다 쓰고, 
+       내용이 많으면 스크롤이 생김 */
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch; /* 모바일 부드러운 스크롤 */
+  }
 }
