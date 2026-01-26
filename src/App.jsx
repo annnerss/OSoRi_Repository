@@ -45,7 +45,8 @@ function App() {
                                               />} />
           <Route path="myBadges" element={<MyBadges />} />
           <Route path="profileSettings" element={<ProfileSettings />}/>
-          <Route path='expenseForm' element={<ExpenseForm/>}/>
+          <Route path='expenseForm' element={<ExpensePage/>}/>
+          <Route path='group/:groupId/expenseForm' element={<ExpensePage/>}/>
         </Route>
       </Routes>
     </Router>

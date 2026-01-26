@@ -158,12 +158,9 @@ const ExpenseForm = ({ mode = 'personal', groupId }) => {
           return;
         }
         
-        // groupId 데이터에 추가
-        const groupData = { ...formData, groupId: groupId };
-        
         // 그룹 API 호출
+        await transApi.groupTransSave({ ...formData,groupId: groupId, userId: user?.userId ,type: formData.type === '수입' ? 'IN' : 'OUT'})
 
-        console.log("Group Data:", groupData);
         
       } else {
 
