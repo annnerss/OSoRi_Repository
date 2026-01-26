@@ -11,6 +11,7 @@ import LoginPage from "./features/auth/pages/LoginPage";
 import RegisterPage from "./features/auth/pages/RegisterPage";
 import PrivateRoute from "./routes/PrivateRoute";
 import { transactions } from './Data/mockData'; //목업 수입지출데이터
+import ExpenseForm from './features/auth/pages/ExpenseForm';
 
 
 function App() {
@@ -37,13 +38,14 @@ function App() {
         >
           <Route index element={<MyPage />} />
           <Route path="assets" element={<MyPage />} />
-          <Route path="calendarView" element={<CalendarView 
-                                                transactions={transactions} 
+          <Route path="calendarView" element={<CalendarView
+                                                transactions={transactions}
                                                 currentDate={currentDate}
                                                 setCurrentDate={setCurrentDate}
                                               />} />
           <Route path="myBadges" element={<MyBadges />} />
-          <Route path="profileSettings" element={<ProfileSettings />} />
+          <Route path="profileSettings" element={<ProfileSettings />}/>
+          <Route path='expenseForm' element={<ExpenseForm/>}/>
         </Route>
       </Routes>
     </Router>
@@ -51,8 +53,3 @@ function App() {
 }
 
 export default App;
-
-
-
-
-

@@ -26,3 +26,4 @@ export const authApi = {
    logout: () => apiFetch("/user/logout", { method: "POST" }), // 로그아웃
 };
 
+

@@ -627,5 +627,4 @@ export default MainPage;
 //   );
 // };
 
-// export default MainPage;
 

@@ -232,7 +232,7 @@ export default function RegisterPage() {
       return;
     }
 
-    
+
 
     // count 기반 체크
     if (idCheck && Number(idCheck.count ?? 0) > 0) {
