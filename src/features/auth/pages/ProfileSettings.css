@@ -349,6 +349,35 @@
   }
 }
 
+/* =========================================================
+   [ADDED] 휴면(H) 전용 UI
+   - ProfileSettings.jsx 에서 status==='H'일 때만 노출됨
+   ========================================================= */
+.ps-dormant-banner {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(24, 169, 87, 0.10); /* 연한 초록 */
+  color: #1e6b3a;
+  font-weight: 800;
+}
+
+.ps-dormant-btn {
+  padding: 14px 18px;
+  border-radius: 14px;
+  border: none;
+  background: #18a957; /* 초록 계열 */
+  color: #fff;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.ps-dormant-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+
 
 
 
