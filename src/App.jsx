@@ -21,6 +21,7 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<MainPage />} />
+
         {/* 로그인/회원가입 화면 (헤더/푸터 없이) */}
         <Route element={<AuthLayout />}>
           <Route path="/login" element={<LoginPage />} />
@@ -36,10 +37,10 @@ function App() {
             </PrivateRoute>
           }
         >
-          <Route index element={<MyPage />} /> 
+          <Route index element={<MyPage />} />
           <Route path="assets" element={<MyPage />} />
-          <Route path="calendarView" element={<CalendarView 
-                                                transactions={transactions} 
+          <Route path="calendarView" element={<CalendarView
+                                                transactions={transactions}
                                                 currentDate={currentDate}
                                                 setCurrentDate={setCurrentDate}
                                               />} />
@@ -50,7 +51,7 @@ function App() {
         </Route>
       </Routes>
     </Router>
-  )
+  );
 }
 
 export default App;
