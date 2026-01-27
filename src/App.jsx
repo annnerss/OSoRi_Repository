@@ -14,6 +14,7 @@ import LoginPage from './features/auth/pages/LoginPage';
 import ExpenseForm from './features/auth/pages/ExpenseForm';
 import MyAccountBook from "./features/auth/pages/MyAccountBook";
 import ExpensePage from './features/auth/pages/ExpensePage';
+import GroupAccountBook from './features/group/GroupAccountBook';
 
 
 function App() {
@@ -48,6 +49,7 @@ function App() {
           <Route path="myBadges" element={<MyBadges />} />
           <Route path="profileSettings" element={<ProfileSettings />}/>
           <Route path="myAccountBook" element={<MyAccountBook />} />
+          <Route path='groupAccountBook' element={<GroupAccountBook/>}/>
           <Route path='expenseForm' element={<ExpensePage/>}/>
           <Route path='group/:groupId/expenseForm' element={<ExpensePage/>}/>
         </Route>

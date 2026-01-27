@@ -16,14 +16,18 @@ export const transApi = {
         return response.data;
     },
 
-    groupTransSave : async(formData) =>{
-        const response = await api.post('/trans/groupTransSave',formData);
-
+    getUserTrans: async (userId) => {
+        const response = await api.get(`/trans/user/${userId}`);
         return response.data;
     },
 
-    getUserTrans: async (userId) => {
-        const response = await api.get(`/trans/user/${userId}`);
+    groupTransSave : async(formData) =>{
+        const response = await api.post('/trans/groupTransSave',formData);
+        return response.data;
+    },
+
+    getGroupTrans: async (groupId) => {
+        const response = await api.get(`/trans/groupTransList/${groupId}`);
         return response.data;
     },
 

@@ -89,7 +89,7 @@ const MyPage = () => {
                   <li key={gb.groupbId}>
                     <NavLink
                       to={{
-                            pathname: "/mypage/groupBudget",
+                            pathname: "/mypage/groupAccountBook",
                             search: `?groupId=${gb?.groupbId}`,
                           }}
                       className={({ isActive }) => `menu-item ${isActive ? "active" : ""}`}
