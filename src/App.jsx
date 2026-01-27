@@ -11,7 +11,8 @@ import LoginPage from "./features/auth/pages/LoginPage";
 import RegisterPage from "./features/auth/pages/RegisterPage";
 import PrivateRoute from "./routes/PrivateRoute";
 import { transactions } from './Data/mockData'; //목업 수입지출데이터
-import ExpenseForm from './features/auth/pages/ExpenseForm';
+import MyAccountBook from "./features/auth/pages/MyAccountBook";
+import ExpensePage from './features/auth/pages/ExpensePage';
 
 
 function App() {
@@ -45,6 +46,7 @@ function App() {
                                               />} />
           <Route path="myBadges" element={<MyBadges />} />
           <Route path="profileSettings" element={<ProfileSettings />}/>
+          <Route path="myAccountBook" element={<MyAccountBook />} />
           <Route path='expenseForm' element={<ExpensePage/>}/>
           <Route path='group/:groupId/expenseForm' element={<ExpensePage/>}/>
         </Route>

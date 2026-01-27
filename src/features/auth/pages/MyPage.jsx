@@ -31,7 +31,7 @@ const MyPage = () => {
 
       <div className="account-book-grid">
         <div className="info-card"
-             onClick={() =>navigate("/mypage/expenseForm")} 
+             onClick={() =>navigate("/mypage/myAccountBook")} 
              style={{ cursor: "pointer" }}
         >
           <div className="card-title-area">
