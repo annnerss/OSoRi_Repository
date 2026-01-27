@@ -162,7 +162,7 @@ const ExpenseForm = ({ mode = 'personal', groupId }) => {
         }
         
         // 그룹 API 호출
-        await transApi.groupTransSave({ ...formData,groupId: groupId, userId: user?.userId ,type: formData.type === '수입' ? 'IN' : 'OUT'})
+        await transApi.groupTransSave({ ...formData, userId: user?.userId ,groupBId: Number(groupId),type: formData.type === '수입' ? 'IN' : 'OUT',nickName: user?.nickname || ""})
 
         
       } else {
@@ -173,7 +173,11 @@ const ExpenseForm = ({ mode = 'personal', groupId }) => {
       }
 
       alert("저장되었습니다!");
-      navigate('/mypage/myAccountBook');
+      if (mode === 'group') {
+          navigate(`/mypage/groupAccountBook?groupId=${groupId}`);
+      } else {
+          navigate('/mypage/myAccountBook');
+      }
 
     } catch (error) {
       console.error("Save Error:", error);

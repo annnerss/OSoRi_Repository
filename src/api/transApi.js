@@ -39,7 +39,22 @@ export const transApi = {
     deleteTrans: async (transId) => {
         const response = await api.delete(`/trans/deleteTrans/${transId}`);
         return response.data;
-    }
+    },
+
+     updateGroupTrans: async (updateData) =>{
+        const response = await api.put('/trans/updateGroupTrans', updateData);
+        return response.data;
+    },
+
+    deleteGroupTrans: async (transId) => {
+        const response = await api.delete(`/trans/deleteGroupTrans/${transId}`);
+        return response.data;
+    },
+
+    groupInfo: async (groupId) => {
+        const response = await api.get(`/trans/groupInfo/${groupId}`);
+        return response.data;
+    },
 }
 
 export default transApi;
