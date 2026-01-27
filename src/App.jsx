@@ -8,16 +8,19 @@ import MyBadges from "./features/auth/pages/MyBadges";
 import ProfileSettings from "./features/auth/pages/ProfileSettings";
 import AuthLayout from "./layouts/AuthLayout";
 import LoginPage from "./features/auth/pages/LoginPage";
-import RegisterPage from "./features/auth/pages/RegisterPage";
 import FindIdPage from "./features/auth/pages/FindIdPage";
 import FindPasswordPage from "./features/auth/pages/FindPasswordPage";
 import PrivateRoute from "./routes/PrivateRoute";
 import { transactions } from './Data/mockData'; //목업 수입지출데이터
+import RegisterPage from './features/auth/pages/RegisterPage';
+import LoginPage from './features/auth/pages/LoginPage';
 import ExpenseForm from './features/auth/pages/ExpenseForm';
 import ResetPasswordPage from "./features/auth/pages/ResetPasswordPage";
+import MyAccountBook from "./features/auth/pages/MyAccountBook";
+import ExpensePage from './features/auth/pages/ExpensePage';
 
 function App() {
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const [calendarDate, setCalendarDate] = useState(new Date());
   return (
     <Router>
       <Routes>
@@ -51,6 +54,7 @@ function App() {
         >
           <Route index element={<MyPage />} />
           <Route path="assets" element={<MyPage />} />
+
           <Route
             path="calendarView"
             element={
@@ -61,9 +65,14 @@ function App() {
               />
             }
           />
+
+
           <Route path="myBadges" element={<MyBadges />} />
-          <Route path="profileSettings" element={<ProfileSettings />} />
-          <Route path="expenseForm" element={<ExpenseForm />} />
+          <Route path="profileSettings" element={<ProfileSettings />}/>
+          <Route path="myAccountBook" element={<MyAccountBook />} />
+          <Route path='expenseForm' element={<ExpensePage/>}/>
+          <Route path='group/:groupId/expenseForm' element={<ExpensePage/>}/>
+
         </Route>
       </Routes>
     </Router>

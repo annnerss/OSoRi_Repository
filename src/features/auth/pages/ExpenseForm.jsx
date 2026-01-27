@@ -1,7 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './ExpenseForm.css';
 import transApi from '../../../api/transApi';
 import { useAuth } from '../../../context/AuthContext';
+
 
 const EXPENSE_CATEGORIES = [
   "식비", "생활/마트", "쇼핑", "의료/건강", 
@@ -12,10 +14,11 @@ const INCOME_CATEGORIES = [
   "월급", "용돈", "금융소득", "상여금", "기타"
 ];
 
-
 const ExpenseForm = ({ mode = 'personal', groupId }) => {
 
   const {user} = useAuth();
+
+  const navigate = useNavigate();
 
    // 현재 모드에 따라 보여줄 카테고리 리스트 결정
   const [currentCategories, setCurrentCategories] = useState(EXPENSE_CATEGORIES);
@@ -158,12 +161,9 @@ const ExpenseForm = ({ mode = 'personal', groupId }) => {
           return;
         }
         
-        // groupId 데이터에 추가
-        const groupData = { ...formData, groupId: groupId };
-        
         // 그룹 API 호출
+        await transApi.groupTransSave({ ...formData,groupId: groupId, userId: user?.userId ,type: formData.type === '수입' ? 'IN' : 'OUT'})
 
-        console.log("Group Data:", groupData);
         
       } else {
 
@@ -173,22 +173,7 @@ const ExpenseForm = ({ mode = 'personal', groupId }) => {
       }
 
       alert("저장되었습니다!");
-      
-      // 저장 후 폼 초기화
-      setFormData(prev => ({
-        ...prev,
-        transDate: '',
-        title: '',
-        originalAmount: '',
-        category: prev.type === '수입' ? INCOME_CATEGORIES[0] : EXPENSE_CATEGORIES[0],
-        memo: ''
-      }));
-
-      setPreviewUrl(null);
-
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
+      navigate('/mypage/myAccountBook');
 
     } catch (error) {
       console.error("Save Error:", error);
@@ -210,7 +195,7 @@ const ExpenseForm = ({ mode = 'personal', groupId }) => {
         <h2 className="section-title" style={{textAlign: 'center', fontSize: '1.8rem', marginTop: 0}}>
           {formData.type === '수입' ? '수입 등록 💵' : '지출 등록 💸'}
         </h2>
-        
+      
         <div className="type-toggle-container">
           <button 
             className={`type-btn ${formData.type === '수입' ? 'active income' : ''}`}

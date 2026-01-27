@@ -56,4 +56,3 @@ const MyPageLayout = () => {
 };
 
 export default MyPageLayout;
-

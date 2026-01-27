@@ -1,11 +1,13 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL : '/osori',
-  timeout : 10000,
-  headers : {
-    'Content-Type' : 'application/json'
-  }
+
+    baseURL : '/osori',
+    timeout : 10000,
+    headers : {
+        'Content-Type' : 'application/json'
+    }
+
 });
 
 export default api; 
