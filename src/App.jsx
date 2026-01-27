@@ -13,6 +13,7 @@ import RegisterPage from './features/auth/pages/RegisterPage';
 import LoginPage from './features/auth/pages/LoginPage';
 import ExpenseForm from './features/auth/pages/ExpenseForm';
 import MyAccountBook from "./features/auth/pages/MyAccountBook";
+import ExpensePage from './features/auth/pages/ExpensePage';
 
 
 function App() {
@@ -45,9 +46,10 @@ function App() {
                                                 setCurrentDate={setCurrentDate}
                                               />} />
           <Route path="myBadges" element={<MyBadges />} />
-          <Route path="profileSettings" element={<ProfileSettings />} />
-          <Route path='expenseForm' element={<ExpenseForm/>}/>
-          <Route path='myAccountBook' element={<MyAccountBook/>}/>
+          <Route path="profileSettings" element={<ProfileSettings />}/>
+          <Route path="myAccountBook" element={<MyAccountBook />} />
+          <Route path='expenseForm' element={<ExpensePage/>}/>
+          <Route path='group/:groupId/expenseForm' element={<ExpensePage/>}/>
         </Route>
       </Routes>
     </Router>
