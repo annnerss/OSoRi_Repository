@@ -1,4 +1,3 @@
-
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../context/AuthContext";
@@ -49,11 +48,20 @@ function ProfileSettings() {
   const [newPassword, setNewPassword] = useState("");
   const [newPasswordConfirm, setNewPasswordConfirm] = useState("");
 
+  // ============================
+  // [ADDED] ✅ 여기 추가함 (새 비밀번호 일치/불일치 메시지)
+  // ============================
+  const [pwMatchMsg, setPwMatchMsg] = useState("");
+  const [pwMatchOk, setPwMatchOk] = useState(null); // null | true | false
+
   //원래 회원탈퇴 디자인(카드 + 모달)
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
   const [withdrawPassword, setWithdrawPassword] = useState("");
   const [withdrawConfirmText, setWithdrawConfirmText] = useState("");
   const [withdrawChecked, setWithdrawChecked] = useState(false);
+
+  // [ADDED][CHANGED] 탈퇴 중 중복 클릭 방지(디자인 영향 없음)
+  const [isWithdrawing, setIsWithdrawing] = useState(false);
 
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
@@ -78,7 +86,18 @@ function ProfileSettings() {
     hasProfileChanges || hasEmailChanges || hasProfileImageChanges || hasPasswordChanges;
 
   const hasFieldErrors = Boolean(fieldErrors.nickName || fieldErrors.email || fieldErrors.userName);
-  const canSubmit = canSave && !isSaving && !hasFieldErrors;
+
+  // ============================================================
+  // [ADDED] ✅ 휴면(H) 여부
+  // ============================================================
+  const isDormant = user?.status === "H";
+
+  // ------------------------------------------------------------
+  // [BEFORE] 기존 로직 (그대로 보관)
+  // const canSubmit = canSave && !isSaving && !hasFieldErrors;
+  // ------------------------------------------------------------
+  // [CHANGED] ✅ 휴면(H)이면 변경사항 없어도 버튼 활성화
+  const canSubmit = (canSave || isDormant) && !isSaving && !hasFieldErrors;
 
   const validate = () => {
     if (!nickName.trim()) return "닉네임은 비울 수 없습니다/";
@@ -204,38 +223,21 @@ function ProfileSettings() {
       return;
     }
 
-    // =========================
-    // [ADDED] loginId는 서버 update 쿼리 WHERE LOGIN_ID=#{loginId}에 필수
-    // userId가 0으로 찍히는 건 "요청에 userId가 없어서 int 기본값 0"인 거라 정상이고
-    // 여기서는 loginId만 확실히 보내면 됨
-    // =========================
     const loginId = (user?.loginId || "").trim();
     if (!loginId) {
       alert("로그인 정보가 없습니다. 로그인을 다시 하셔야 합니다.");
       return;
     }
 
-    // =========================
-    // [CHANGED] 백엔드 updateUser가 고정 SET이라면
-    // - nickName/email/userName을 "항상" 같이 보내는 게 안전함
-    // - userName은 선택값이라 공백이면 null로 보냄(Oracle은 ''도 null 취급)
-    // - email은 중복체크 로직이 lower()를 쓰는 편이라 소문자 저장으로 통일
-    // =========================
     const mePayload = {
-      loginId, // 로그인 아이디 갖고오기
+      loginId,
       nickName: (nickName || "").trim(),
       userName: (userName || "").trim() || null,
       email: (email || "").trim().toLowerCase(),
       status: user?.status,
     };
 
-    // =========================
-    // [ADDED] 프로필 이미지 업로드는 현재 백엔드가 multipart를 안 받음
-    // - 이미지까지 같이 저장하려면 백엔드에서 @RequestPart / MultipartFile 처리 필요
-    // - 일단은 기존 로직 주석으로 남기고, 지금은 이미지 저장은 막는다
-    // =========================
     if (uploadFile) {
-      // 이미지 외에도 다른 변경사항이 있으면 그건 저장 진행하고, 이미지는 무시
       const onlyImageChange = !hasProfileChanges && !hasEmailChanges && !hasPasswordChanges;
       if (onlyImageChange) {
         alert("프로필 이미지 업로드는 백엔드 multipart 처리가 필요해서 아직 저장 불가함");
@@ -250,26 +252,15 @@ function ProfileSettings() {
     try {
       let updatedUser = null;
 
-      // =========================
-      // [CHANGED] JSON만 PATCH (loginId 포함 + 전체 필드 전송)
-      // =========================
       const res = await userApi.updateMe(mePayload);
-
-      // ============================================================
-      // [CHANGED] ✅ 서버 ResponseEntity의 message를 프론트에서 쓰기
-      // - 원래 코드는 res.user만 쓰고, message는 버려져서
-      //   아래 alert("저장 완료")만 뜨던 상황이었음
-      // ============================================================
-      const serverMessage = res?.message; // [CHANGED] 서버가 내려준 message
+      const serverMessage = res?.message; // 서버 message 사용
 
       updatedUser = res?.user || res;
 
-      // 서버가 user를 제대로 안 내려주는 케이스 대비(안전장치)
       if (!updatedUser || typeof updatedUser !== "object") {
         updatedUser = { ...(user || {}), ...mePayload };
       }
 
-      // ✅ 저장 성공 시에만 전역(user) 갱신
       setUser(updatedUser);
       localStorage.setItem("user", JSON.stringify(updatedUser));
 
@@ -277,11 +268,7 @@ function ProfileSettings() {
         await userApi.changePassword({ currentPassword, newPassword });
       }
 
-      // ------------------------------------------------------------
-      // [BEFORE] ✅ 이건 네가 짰던 원래 코드라서 내가 주석 처리함
-      // alert("저장 완료");
-      // ------------------------------------------------------------
-      // [CHANGED] 서버 메시지 우선, 없으면 기존 문구
+      // [CHANGED] 서버 메시지 우선
       alert(serverMessage || "저장 완료");
 
       setIsPasswordEditing(false);
@@ -289,8 +276,6 @@ function ProfileSettings() {
       setNewPassword("");
       setNewPasswordConfirm("");
 
-      // 이미지 선택은 "저장 반영"이 아니라 "미리보기"만 했던 상태라
-      // UX상 저장 완료 후 초기화해버리는 게 더 깔끔함
       setUploadFile(null);
       if (previewUrl) URL.revokeObjectURL(previewUrl);
       setPreviewUrl("");
@@ -310,20 +295,41 @@ function ProfileSettings() {
     setWithdrawPassword("");
     setWithdrawConfirmText("");
     setWithdrawChecked(false);
+
+    // [ADDED][CHANGED] 모달 열릴 때 탈퇴 진행 상태 초기화(디자인 영향 없음)
+    setIsWithdrawing(false);
+
     setIsWithdrawOpen(true);
   };
 
   const closeWithdraw = () => setIsWithdrawOpen(false);
 
   const handleWithdraw = async () => {
+    // ------------------------------------------------------------
+    // [BEFORE] 확인문구까지 강제 (근데 input이 주석 처리돼서 실제로는 탈퇴 막힘)
+    // if (!withdrawChecked) return alert("탈퇴 안내를 확인하고 체크해야 함");
+    // if (withdrawConfirmText.trim() !== "탈퇴합니다")
+    //   return alert('확인 문구로 "탈퇴합니다" 를 정확히 입력해야 함');
+    // if (!withdrawPassword.trim()) return alert("비밀번호를 입력해야 함");
+    // ------------------------------------------------------------
+
+    // ------------------------------------------------------------
+    // [CHANGED] 요구사항: 체크박스 체크 + 비밀번호 입력 시에만 진행
+    // ------------------------------------------------------------
     if (!withdrawChecked) return alert("탈퇴 안내를 확인하고 체크해야 함");
-    if (withdrawConfirmText.trim() !== "탈퇴합니다")
-      return alert('확인 문구로 "탈퇴합니다" 를 정확히 입력해야 함');
     if (!withdrawPassword.trim()) return alert("비밀번호를 입력해야 함");
 
+    // [ADDED][CHANGED] 중복 클릭 방지
+    if (isWithdrawing) return;
+    setIsWithdrawing(true);
+
     try {
-      await userApi.withdraw({ password: withdrawPassword });
-      alert("회원탈퇴 완료");
+      // CHANGED 서버 ResponseEntity message 표시
+      const res = await userApi.withdraw({ password: withdrawPassword });
+      const serverMessage =
+        res?.message || (typeof res === "string" ? res : "회원탈퇴 완료");
+      alert(serverMessage);
+
       await logout();
       navigate("/", { replace: true });
     } catch (err) {
@@ -332,14 +338,18 @@ function ProfileSettings() {
         (typeof err?.data === "string" ? err.data : "회원탈퇴 중 오류가 발생했음");
       alert(message);
     } finally {
+      setIsWithdrawing(false);
       closeWithdraw();
     }
   };
 
-  // ✅ 상단 프로필 표시는 "입력값(draft)"이 아니라 "서버 저장값(initial)"만
+  // 상단 프로필 표시는 "입력값(draft)"이 아니라 "서버 저장값(initial)"만
   const displayName = (initial.displayName || "회원").trim();
   const displayEmail = (initial.email || "").trim();
   const serverAvatarUrl = user?.changeName || "";
+
+  // 탈퇴 버튼 활성화 조건
+  const canWithdraw = withdrawChecked && withdrawPassword.trim().length > 0 && !isWithdrawing;
 
   return (
     <main className="fade-in ps-page">
@@ -442,47 +452,51 @@ function ProfileSettings() {
                 />
                 {fieldErrors.email && <div className="ps-field-error">{fieldErrors.email}</div>}
               </div>
+            </div>
 
-              {/* <div className="ps-divider" />
+            <div className="ps-divider" />
 
-              <div className="ps-field">
-                <div className="ps-row-between">
-                  <label className="ps-label">비밀번호</label>
-                  <button
-                    type="button"
-                    className="ps-link-btn"
-                    onClick={() => setIsPasswordEditing((v) => !v)}
-                  >
-                    {isPasswordEditing ? "닫기" : "비밀번호 변경"}
-                  </button>
-                </div>
+            <div className="ps-field">
+              <div className="ps-row-between">
+                <label className="ps-label">비밀번호</label>
+                <button
+                  type="button"
+                  className="ps-link-btn"
+                  onClick={() => setIsPasswordEditing((v) => !v)}
+                >
+                  {isPasswordEditing ? "닫기" : "비밀번호 변경"}
+                </button>
+              </div>
 
-                {isPasswordEditing && (
-                  <div className="ps-password-box">
-                    <div className="ps-field">
-                      <label className="ps-label">현재 비밀번호</label>
-                      <input
-                        className="ps-input"
-                        type="password"
-                        value={currentPassword}
-                        onChange={(e) => setCurrentPassword(e.target.value)}
-                        placeholder="현재 비밀번호"
-                      />
-                    </div>
+              {isPasswordEditing && (
+                <div className="ps-password-box">
+                  <div className="ps-field">
+                    <label className="ps-label">현재 비밀번호</label>
+                    <input
+                      className="ps-input"
+                      type="password"
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      placeholder="현재 비밀번호"
+                    />
+                  </div>
 
-                    <div className="ps-field">
-                      <label className="ps-label">새 비밀번호</label>
-                      <input
-                        className="ps-input"
-                        type="password"
-                        value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
-                        placeholder="새 비밀번호"
-                      />
-                    </div>
+                  <div className="ps-field">
+                    <label className="ps-label">새 비밀번호</label>
+                    <input
+                      className="ps-input"
+                      type="password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="새 비밀번호"
+                    />
+                  </div>
 
-                    <div className="ps-field">
-                      <label className="ps-label">새 비밀번호 확인</label>
+                  <div className="ps-field">
+                    <label className="ps-label">새 비밀번호 확인</label>
+
+                    {/*
+                      [BEFORE] 기존 input (그대로 보관)
                       <input
                         className="ps-input"
                         type="password"
@@ -490,27 +504,93 @@ function ProfileSettings() {
                         onChange={(e) => setNewPasswordConfirm(e.target.value)}
                         placeholder="새 비밀번호 확인"
                       />
-                    </div>
+                    */}
+
+                    {/* [CHANGED] ✅ 여기 onBlur 추가함 (blur 발생 지점) */}
+                    <input
+                      className="ps-input"
+                      type="password"
+                      value={newPasswordConfirm}
+                      onChange={(e) => setNewPasswordConfirm(e.target.value)}
+                      onBlur={(e) => {
+                        const a = (newPassword || "").trim();
+                        const b = (e.target.value || "").trim();
+
+                        if (!b) {
+                          setPwMatchMsg("");
+                          setPwMatchOk(null);
+                          return;
+                        }
+
+                        if (a === b) {
+                          setPwMatchMsg("새 비밀번호와 일치합니다.");
+                          setPwMatchOk(true);
+                        } else {
+                          setPwMatchMsg("새 비밀번호와 일치하지 않습니다.");
+                          setPwMatchOk(false);
+                        }
+                      }}
+                      placeholder="새 비밀번호 확인"
+                    />
+
+                    {/* [ADDED] ✅ 메시지 출력 (기존 클래스만 사용) */}
+                    {pwMatchMsg && (
+                      <div className={pwMatchOk ? "ps-help" : "ps-field-error"}>
+                        {pwMatchMsg}
+                      </div>
+                    )}
                   </div>
-                )}
-              </div> */}
+                </div>
+              )}
             </div>
 
             <div className="ps-actions ps-actions-in-card">
               {saveError && <div className="ps-error">{saveError}</div>}
+
+              {/* ------------------------------------------------------------
+                [BEFORE] 기존 저장 버튼 (그대로 보관)
+                <button
+                  type="button"
+                  className="ps-save-btn"
+                  onClick={handleSave}
+                  disabled={!canSubmit}
+                >
+                  {isSaving ? "저장 중..." : "저장"}
+                </button>
+              ------------------------------------------------------------ */}
+
+              {/* ============================================================
+                [CHANGED] ✅ "형태 유지" 조건 만족:
+                - 같은 위치
+                - 같은 className="ps-save-btn"
+                - 버튼 하나 그대로
+                - 텍스트만 status에 따라 "저장" / "휴면 해제"
+                - 초록색은 CSS 파일 안 건드리고 style로만 덮어씀
+              ============================================================ */}
               <button
                 type="button"
                 className="ps-save-btn"
                 onClick={handleSave}
                 disabled={!canSubmit}
+                style={
+                  isDormant
+                    ? { backgroundColor: "#2ecc71", borderColor: "#2ecc71" }
+                    : undefined
+                }
               >
-                {isSaving ? "저장 중..." : "저장"}
+                {isSaving
+                  ? isDormant
+                    ? "휴면 해제 중..."
+                    : "저장 중..."
+                  : isDormant
+                  ? "휴면 해제"
+                  : "저장"}
               </button>
             </div>
           </div>
         </section>
 
-        {/* ✅ 너 원래 회원탈퇴 디자인(사진에 나온 카드) */}
+        {/*회원탈퇴 디자인*/}
         <section className="ps-danger-wrap">
           <div className="info-card ps-danger">
             <div className="ps-danger-title">회원탈퇴</div>
@@ -524,13 +604,13 @@ function ProfileSettings() {
         </section>
       </div>
 
-      {/* ✅ 원래 회원탈퇴 모달 */}
+      {/*회원탈퇴 모달 */}
       {isWithdrawOpen && (
         <div className="ps-modal-overlay" role="dialog" aria-modal="true">
           <div className="ps-modal">
             <div className="ps-modal-title">정말 탈퇴하시겠습니까?</div>
             <div className="ps-modal-text">
-              아래 내용을 확인하시고, 체크 및 비밀번호를 입력하시면 탈퇴가 진행됩니다. 
+              아래 내용을 확인하시고, 체크 처리 및 비밀번호를 입력하시면 탈퇴가 진행됩니다.
             </div>
 
             <label className="ps-check">
@@ -541,17 +621,6 @@ function ProfileSettings() {
               />
               <span>탈퇴 시 계정 복구가 불가능합니다.</span>
             </label>
-
-            {/* <div className="ps-field" style={{ marginTop: 14 }}>
-              <label className="ps-label">확인 문구 입력</label>
-              <input
-                className="ps-input"
-                value={withdrawConfirmText}
-                onChange={(e) => setWithdrawConfirmText(e.target.value)}
-                placeholder='"탈퇴합니다" 입력'
-              />
-              <div className="ps-help">정확히 "탈퇴합니다"를 입력해야합니다.</div>
-            </div> */}
 
             <div className="ps-field">
               <label className="ps-label">비밀번호</label>
@@ -568,7 +637,13 @@ function ProfileSettings() {
               <button type="button" className="ps-btn" onClick={closeWithdraw}>
                 취소
               </button>
-              <button type="button" className="ps-btn danger" onClick={handleWithdraw}>
+
+              <button
+                type="button"
+                className="ps-btn danger"
+                onClick={handleWithdraw}
+                disabled={!canWithdraw}
+              >
                 탈퇴
               </button>
             </div>
