@@ -17,7 +17,7 @@ import ExpensePage from './features/auth/pages/ExpensePage';
 
 
 function App() {
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const [calendarDate, setCalendarDate] = useState(new Date());
   return (
     <Router>
       <Routes>
@@ -42,8 +42,8 @@ function App() {
           <Route path="assets" element={<MyPage />} />
           <Route path="calendarView" element={<CalendarView
                                                 transactions={transactions}
-                                                currentDate={currentDate}
-                                                setCurrentDate={setCurrentDate}
+                                                currentDate={calendarDate}
+                                                setCurrentDate={setCalendarDate}
                                               />} />
           <Route path="myBadges" element={<MyBadges />} />
           <Route path="profileSettings" element={<ProfileSettings />}/>

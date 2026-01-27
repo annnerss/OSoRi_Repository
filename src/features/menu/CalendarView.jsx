@@ -7,14 +7,28 @@ import './CalendarView.css';
 
 function CalendarView({ currentDate, setCurrentDate }) {
   const { user } = useAuth();
-  const [ledgers, setLedgers] = useState([]); // 가계부 목록 (개인 + 그룹)
-  const [transactions, setTransactions] = useState([]); // 전체 거래 내역
-  const [activeLedgers, setActiveLedgers] = useState(['personal']); // 현재 활성화된 필터
+  const [ledgers, setLedgers] = useState([]); 
+  const [transactions, setTransactions] = useState([]); 
+  const [activeLedgers, setActiveLedgers] = useState([]); 
   const [selectedDate, setSelectedDate] = useState(new Date().toLocaleDateString('en-CA'));
 
   const userId = user?.userId || 3; 
 
-  // 1. 가계부 목록 로드 (개인 가계부 + 참여 중인 그룹 가계부)
+  // 날짜 정규화: 26/01/15 -> 2026-01-15 완벽 대응
+  const normalizeDate = (dateStr) => {
+    if (!dateStr) return "";
+    const cleanStr = String(dateStr).trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(cleanStr)) return cleanStr;
+    const parts = cleanStr.split(/[/|-]/);
+    if (parts.length === 3) {
+      let [y, m, d] = parts;
+      if (y.length === 2) y = "20" + y;
+      return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+    }
+    return cleanStr;
+  };
+
+  // 1. 가계부 목록 로드
   useEffect(() => {
     axios.get('http://localhost:8080/osori/group/gbList', { params: { userId } })
       .then(res => {
@@ -24,15 +38,14 @@ function CalendarView({ currentDate, setCurrentDate }) {
           name: gb.title || gb.TITLE,
           color: ['#ff9f43', '#ee5253', '#10ac84', '#5f27cd'][idx % 4]
         }));
-
         const combined = [personal, ...groups];
         setLedgers(combined);
-        setActiveLedgers(combined.map(l => l.id)); // 초기값: 전체 선택
+        setActiveLedgers(combined.map(l => l.id));
       })
       .catch(() => setLedgers([{ id: 'personal', name: '내 가계부', color: '#0066ff' }]));
   }, [userId]);
 
-  // 2. 모든 활성화된 가계부의 내역을 서버에서 가져오기
+  // 2. [핵심 수정] 데이터 필드명 대소문자 통합 매핑
   useEffect(() => {
     const fetchAllData = async () => {
       try {
@@ -42,36 +55,42 @@ function CalendarView({ currentDate, setCurrentDate }) {
 
         const [pRes, ...gRes] = await Promise.all([pReq, ...gReqs]);
 
-        const pData = pRes.data.map(t => ({ ...t, ledgerId: 'personal', date: t.transDate || t.date }));
+        // 개인 데이터 표준화
+        const pData = pRes.data.map(t => ({ 
+          ledgerId: 'personal',
+          date: normalizeDate(t.transDate || t.TRANS_DATE || t.date || t.DATE),
+          title: t.title || t.TITLE || '내역 없음',
+          category: t.category || t.CATEGORY || '기타',
+          type: (t.type || t.TYPE || 'OUT').toUpperCase(),
+          amount: Number(t.amount || t.originalAmount || t.ORIGINAL_AMOUNT || 0),
+          memo: t.memo || t.MEMO || ''
+        }));
+        
+        // 그룹 데이터 표준화 (대문자 필드 대응)
         const gData = gRes.flatMap((res, idx) => 
-          res.data.map(t => ({ ...t, ledgerId: groupIds[idx], date: t.transDate }))
+          res.data.map(t => ({ 
+            ledgerId: String(groupIds[idx]), 
+            date: normalizeDate(t.transDate || t.TRANS_DATE),
+            title: t.title || t.TITLE || '그룹 내역',
+            category: t.category || t.CATEGORY || '공동 지출',
+            type: (t.type || t.TYPE || 'OUT').toUpperCase(),
+            amount: Number(t.originalAmount || t.ORIGINAL_AMOUNT || t.amount || 0),
+            memo: t.memo || t.MEMO || '',
+            nickname: t.nickname || t.NICKNAME || ''
+          }))
         );
 
         setTransactions([...pData, ...gData]);
-      } catch (err) {
-        console.error("내역 로드 실패:", err);
-      }
+      } catch (err) { console.error("데이터 로드 실패:", err); }
     };
-
     if (ledgers.length > 0) fetchAllData();
   }, [ledgers, userId]);
 
-  // 3. 필터링 및 전체 토글 로직
+  // 필터링 및 렌더링 로직
   const isAllActive = ledgers.length > 0 && activeLedgers.length === ledgers.length;
+  const toggleAll = () => setActiveLedgers(isAllActive ? [] : ledgers.map(l => l.id));
+  const toggleLedger = (id) => setActiveLedgers(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
 
-  const toggleAll = () => {
-    if (isAllActive) {
-      setActiveLedgers([]); // 전체 해제
-    } else {
-      setActiveLedgers(ledgers.map(l => l.id)); // 전체 선택
-    }
-  };
-
-  const toggleLedger = (id) => {
-    setActiveLedgers(prev => prev.includes(id) ? prev.filter(l => l !== id) : [...prev, id]);
-  };
-
-  // 현재 필터링된 데이터 계산
   const filteredData = useMemo(() => {
     return transactions.filter(item => activeLedgers.includes(String(item.ledgerId)));
   }, [transactions, activeLedgers]);
@@ -81,16 +100,27 @@ function CalendarView({ currentDate, setCurrentDate }) {
     return filteredData.filter(item => item.date === selectedDate);
   }, [filteredData, selectedDate]);
 
-  // 4. 달력 날짜 칸에 금액 표시
+  const monthlyTotalExpense = useMemo(() => {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+
+    return filteredData
+      .filter(item => {
+        const itemDate = new Date(item.date);
+        return item.type === 'OUT' && 
+               itemDate.getFullYear() === year && 
+               itemDate.getMonth() === month;
+      })
+      .reduce((sum, item) => sum + item.amount, 0);
+  }, [filteredData, currentDate]);
+
   const renderTileContent = ({ date, view }) => {
-    if (view === 'month') {
+    if (view === 'month' && date instanceof Date) {
       const dateStr = date.toLocaleDateString('en-CA');
       const dayData = filteredData.filter(item => item.date === dateStr);
-      
       if (dayData.length > 0) {
-        const income = dayData.filter(i => i.type === 'IN').reduce((s, i) => s + (i.originalAmount || i.amount), 0);
-        const expense = dayData.filter(i => i.type === 'OUT').reduce((s, i) => s + (i.originalAmount || i.amount), 0);
-        
+        const income = dayData.filter(i => i.type === 'IN').reduce((s, i) => s + i.amount, 0);
+        const expense = dayData.filter(i => i.type === 'OUT').reduce((s, i) => s + i.amount, 0);
         return (
           <div className="amount-container">
             {income > 0 && <div className="income-tag">+{income.toLocaleString()}</div>}
@@ -103,84 +133,80 @@ function CalendarView({ currentDate, setCurrentDate }) {
   };
 
   return (
-    <main className="fade-in">
-      <div className="calendar-page-container">
-        {/* 상단 통합 필터 바: 전체 토글 기능 추가 */}
-        <div className="ledger-filter-bar">
-          <label className={`filter-chip all-filter ${isAllActive ? 'active' : ''}`}>
-            <input type="checkbox" checked={isAllActive} onChange={toggleAll} />
-            <span className="chip-name">전체 {isAllActive ? '끄기' : '켜기'}</span>
+    <div className="calendar-page-container">
+      <div className="ledger-filter-bar" style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
+        <label className="filter-chip">
+          <input type="checkbox" checked={isAllActive} onChange={toggleAll} />
+          <span>전체 {isAllActive ? '해제' : '선택'}</span>
+        </label>
+        <div className="divider" style={{ width: '1px', background: '#ddd', margin: '0 10px' }}></div>
+        {ledgers.map(l => (
+          <label key={l.id} className="filter-chip">
+            <input type="checkbox" checked={activeLedgers.includes(l.id)} onChange={() => toggleLedger(l.id)} />
+            <span className="dot" style={{ backgroundColor: l.color, display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', margin: '0 5px' }}></span>
+            <span>{l.name}</span>
           </label>
-          <div className="divider"></div>
-          {ledgers.map(l => (
-            <label key={l.id} className={`filter-chip ${activeLedgers.includes(l.id) ? 'active' : ''}`}>
-              <input type="checkbox" checked={activeLedgers.includes(l.id)} onChange={() => toggleLedger(l.id)}/>
-              <span className="dot" style={{ backgroundColor: l.color }}></span>
-              <span className="chip-name">{l.name}</span>
-            </label>
-          ))}
+        ))}
+      </div>
+
+      <div className="calendar-content-wrapper" style={{ display: 'flex', gap: '20px' }}>
+        <div className="calendar-card" style={{ flex: 7 }}>
+          <h2 className="calendar-header">📅 {user?.nickName ||'회원'}님의 소비 달력</h2>
+          <Calendar 
+            onClickDay={(date) => setSelectedDate(date.toLocaleDateString('en-CA'))} 
+            tileContent={renderTileContent}
+            formatDay={(locale, date) => date.getDate()}
+            activeStartDate={currentDate}
+            onActiveStartDateChange={({activeStartDate}) => setCurrentDate(activeStartDate)}
+          />
+
+          <div className="monthly-summary" style={{
+              textAlign: 'right',
+              marginTop: '15px',
+              paddingRight: '10px',
+              fontSize: '1.1rem',
+              color: '#333'
+            }}>
+              <span style={{ fontSize: '0.9rem', color: '#888', marginRight: '5px' }}>
+                {currentDate.getMonth() + 1}월 총 지출:
+              </span>
+              <strong style={{ color: '#e74c3c', fontSize: '1.3rem' }}>
+                {monthlyTotalExpense.toLocaleString()}
+              </strong>원
+            </div>
         </div>
 
-        <div className="calendar-content-wrapper" style={{ display: 'flex', gap: '20px' }}>
-          {/* 왼쪽: 달력 카드 */}
-          <div className="calendar-card" style={{ flex: 7 }}>
-            <h2 className="calendar-header">📅 {user?.nickName || '회원'}님의 소비 달력</h2>
-            <Calendar 
-              onClickDay={(date) => setSelectedDate(date.toLocaleDateString('en-CA'))} 
-              tileContent={renderTileContent}
-              formatDay={(locale, date) => date.getDate()}
-              calendarType="gregory" 
-              activeStartDate={currentDate}
-              onActiveStartDateChange={({activeStartDate}) => setCurrentDate(activeStartDate)}
-            />
-          </div>
 
-          {/* 오른쪽: 상세 내역 카드 (배지 및 레이아웃 복구) */}
-          <div className="detail-card" style={{ flex : 3 }}>
-            <h3 className="detail-title">
-              {selectedDate ? `${selectedDate} 내역` : '날짜를 선택하세요'}
-            </h3>
-            
-            <div className="detail-list-container">
-              {details.length > 0 ? (
-                <ul className="detail-list">
-                  {details.map((item, idx) => {
-                    // 현재 아이템에 맞는 가계부 정보 찾기
-                    const ledgerInfo = ledgers.find(l => l.id === String(item.ledgerId));
-                    return (
-                      <li key={idx} className="detail-item">
-                        <div className="item-info">
-                          <div className="item-header">
-                            <span className="ledger-badge" style={{ backgroundColor: ledgerInfo?.color }}>
-                              {ledgerInfo?.name}
-                            </span>
-                            {item.nickname && (
-                              <span className="item-nickname">[{item.nickname}]</span>
-                            )}
-                            <span className="item-category">{item.category}</span>
-                          </div>
-                          <div className="item-body">
-                            <span className="item-store">{item.title}</span>
-                            {item.memo && <span className="item-memo">{item.memo}</span>}
-                          </div>
-                        </div>
-                        <span className={`item-amount ${item.type}`}>
-                          {item.type === 'IN' ? '+' : '-'}{(item.originalAmount || item.amount).toLocaleString()}원
-                        </span>
-                      </li>
-                    );
-                  })}
-                </ul>
-              ) : (
-                <p className="no-data-msg">
-                  {selectedDate ? '거래 내역이 없습니다.' : '달력에서 날짜를 클릭해 보세요!'}
-                </p>
-              )}
-            </div>
+
+
+        <div className="detail-card" style={{ flex: 3 }}>
+          <h3 className="detail-title">{selectedDate} 내역</h3>
+          <div className="detail-list-container">
+            {details.length > 0 ? (
+              <ul className="detail-list" style={{ listStyle: 'none', padding: 0 }}>
+                {details.map((item, idx) => {
+                  const ledger = ledgers.find(l => String(l.id) === String(item.ledgerId));
+                  return (
+                    <li key={idx} className="detail-item" style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #eee' }}>
+                      <div>
+                        <span className="ledger-badge" style={{ backgroundColor: ledger?.color, color: '#fff', padding: '2px 5px', borderRadius: '4px', fontSize: '12px' }}>{ledger?.name}</span>
+                        <div style={{ fontWeight: 'bold' }}>{item.title}</div>
+                        <div style={{ fontSize: '12px', color: '#888' }}>{item.category} {item.nickname && `| ${item.nickname}`}</div>
+                      </div>
+                      <div className={`item-amount ${item.type}`} style={{ color: item.type === 'IN' ? 'green' : 'red' }}>
+                        {item.type === 'IN' ? '+' : '-'}{item.amount.toLocaleString()}원
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              <p>거래 내역이 없습니다.</p>
+            )}
           </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 }
 
