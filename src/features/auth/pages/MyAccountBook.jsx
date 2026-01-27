@@ -10,7 +10,10 @@ function MyAccountBook() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const userId = user?.USER_ID || user?.id || 1; 
+
+        console.log("현재 로그인 유저:", user);
+
+        const userId = user?.userId || 1;
 
         axios.get(`/osori/trans/user/${userId}`) 
             .then(response => {
@@ -50,7 +53,7 @@ function MyAccountBook() {
 
     const recentTransactions = [...transactions]
         .sort((a, b) => new Date(b.date) - new Date(a.date))
-        .slice(0, 5);
+        .slice(0, 3);
 
     return (
         <div className="card">

@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
+import axios from "axios";
 import "./MyPage.css";
 import { useAuth } from "../../../context/AuthContext";
 
@@ -8,6 +9,33 @@ const MyPage = () => {
   const navigate = useNavigate();
   const displayName = user?.nickName || user?.nickname || user?.userName || "회원";
   const email = user?.email || "";
+  const [transactions, setTransactions] = useState([]);
+
+  useEffect(()=> {
+    const userId = user?.userId || 0;
+    axios.get(`/osori/trans/user/${userId}`)
+      .then(response => {
+        //에서 사용한 매핑 로직과 동일하게 적용
+        const mappedData = response.data.map(item => ({
+          amount: Number(item.originalAmount || 0),
+          type: item.type || 'OUT'
+        }));
+        setTransactions(mappedData);
+      })
+      .catch(error => console.error("마이페이지 데이터 로드 실패:", error));
+  }, [user]);
+
+  
+
+  const income = transactions
+        .filter(t => t.type?.toUpperCase() === 'IN')
+        .reduce((acc, t) => acc + t.amount, 0);
+
+    const expense = transactions
+        .filter(t => t.type?.toUpperCase() === 'OUT')
+        .reduce((acc, t) => acc + Math.abs(t.amount), 0);
+
+    const total = income - expense;
 
   return (
     <main className="fade-in">
@@ -38,8 +66,8 @@ const MyPage = () => {
             <h3>🏠 내 가계부</h3>
           </div>
           <div className="account-detail">
-            <p className="amount">예산: 3,420,000원</p>
-            <p className="desc">지금까지 지출: 850,000원</p>
+            <p className="amount">{total.toLocaleString()}원</p>
+            <p className="desc">{expense.toLocaleString()}원</p>
           </div>
         </div>
 
