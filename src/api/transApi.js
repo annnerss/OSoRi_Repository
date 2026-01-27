@@ -14,8 +14,28 @@ export const transApi = {
         const response = await api.post('/trans/myTransSave',formData);
 
         return response.data;
-    }
+    },
 
+    groupTransSave : async(formData) =>{
+        const response = await api.post('/trans/groupTransSave',formData);
+
+        return response.data;
+    },
+
+    getUserTrans: async (userId) => {
+        const response = await api.get(`/trans/user/${userId}`);
+        return response.data;
+    },
+
+    updateTrans: async (updateData) =>{
+        const response = await api.put('/trans/updateTrans', updateData);
+        return response.data;
+    },
+
+    deleteTrans: async (transId) => {
+        const response = await api.delete(`/trans/deleteTrans/${transId}`);
+        return response.data;
+    }
 }
 
 export default transApi;
