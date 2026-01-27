@@ -160,7 +160,6 @@ function MonthlyTrendChart({ transactions = [], currentDate }) {
     ]
   };
 
-  // MonthlyTrendChart.jsx 내부 options 수정
   const options = {
     responsive: true,
     maintainAspectRatio: false, // 부모 높이에 맞춤
@@ -177,7 +176,7 @@ function MonthlyTrendChart({ transactions = [], currentDate }) {
     scales: {
       y: {
         beginAtZero: true,
-        grid: { display: true }, // 가로선 표시
+        grid: { display: true },
         ticks: { font: { size: 9 }, padding: 0 }
       },
       x: {

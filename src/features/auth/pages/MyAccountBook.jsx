@@ -209,8 +209,8 @@ function MyAccountBook() {
         setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
     };
 
-    const currentYear = analysisDate.getFullYear();
-    const currentMonth = analysisDate.getMonth() + 1;
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = currentDate.getMonth() + 1;
 
     // 모달 관련 상태
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -425,10 +425,8 @@ function MyAccountBook() {
             </div>
 
             <div className='right-side'>
-                {/* [요구사항] 월 입력부터 차트까지 하나의 div(analysis-dashboard)로 묶음 */}
                 <div className="analysis-dashboard">
                     
-                    {/* [요구사항] 월 선택 버튼 영역을 가운데 정렬 */}
                     <div className="dashboard-control-panel">
                         <button onClick={handlePrevMonth} className="nav-btn">◀</button>
                         <h3 className="dashboard-title">
@@ -442,9 +440,11 @@ function MyAccountBook() {
                         <div className="chart-wrapper">
                             <ExpenseChart transactions={transactions} currentDate={currentDate} />
                         </div>
+                        <br/>
                         <div className="chart-wrapper">
                             <MonthlyTrendChart transactions={transactions} currentDate={currentDate} />
                         </div>
+                        <br/>
                     </div>
 
                 </div>

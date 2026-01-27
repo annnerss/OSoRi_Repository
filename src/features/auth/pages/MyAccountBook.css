@@ -8,31 +8,27 @@
   --border-color: #eeeeee;
 }
 
-/* [1] 전체 레이아웃 (7:3 가로 배치) */
 .card {
   display: flex;
   flex-direction: row;
   gap: 25px;
-  width: 95%;
-  max-width: 1400px;
- /* margin: 20px auto;*/
-  height: calc(100vh - 100px); /* 전체 높이 고정 */
+  width: 98%;
+  max-width: 1600px;
+  margin: 0 auto;
+  height: calc(100vh - 80px); 
   background: transparent;
-  box-shadow: none;
-  padding: 0;
+  padding: 10px 0;
   box-sizing: border-box;
 }
 
-/* [2] 왼쪽 패널 (7) */
 .left-side {
   flex: 6;
   display: flex;
   flex-direction: column;
   gap: 15px;
-  min-width: 0; /* flex 자식 깨짐 방지 */
+  min-width: 0;
 }
 
-/* 리스트 카드 (기존 card 클래스와의 충돌 방지) */
 .list-card {
   background: #ffffff !important;
   border-radius: 24px;
@@ -53,7 +49,6 @@
   margin-bottom: 30px;
 }
 
-/* [3] 검색 및 필터 영역 (정렬 해결) */
 .search-wrapper {
   display: flex;
   align-items: center;
@@ -103,7 +98,6 @@
   background-color: #fff;
 }
 
-/* [4] 거래 내역 헤더 및 날짜 (깔끔하게 수정) */
 .list-header {
   display: flex;
   justify-content: space-between;
@@ -143,12 +137,11 @@
   font-weight: bold;
 }
 
-/* [5] 리스트 아이템 및 수입/지출 색상 해결 */
 .list-container {
   flex: 1;
   overflow-y: auto;
-  border-top: 2px solid #333; /* 상단 포인트 라인 */
-  margin: 0 -30px; /* 좌우 패딩 상쇄 */
+  border-top: 2px solid #333; 
+  margin: 0 -30px;
 }
 
 .list-item {
@@ -172,7 +165,7 @@
   gap: 20px;
 }
 
-/* 수입/지출 색상 확실하게 적용 */
+
 .item-amount {
   font-weight: 800;
   font-size: 1.15rem;
@@ -180,18 +173,22 @@
 .item-amount.income { color: var(--income-color) !important; }
 .item-amount.expense { color: var(--expense-color) !important; }
 
-/* [6] 오른쪽 차트 영역 (3) */
+
 .right-side {
   flex: 4;
   display: flex;
   flex-direction: column;
   height: 100%;
+  min-width: 0;
+  min-height: 0;
 }
 
 .chart-wrapper {
   flex: 1;
-  min-height: 0; /* flex 자식의 높이 버그 방지 */
+  width: 100%;
+  min-height: 0;
   display: flex;
+  min-height: 300px;
 }
 
 .chart-main-container {
@@ -199,22 +196,24 @@
   width: 100% !important;
   height: 100% !important;
   position: relative;
-  min-height: 200px; /* 최소 높이 보장 */
+  min-height: 200px; 
 }
 
 .analysis-dashboard {
   background: #ffffff;
   border: 1px solid #eee;
   border-radius: 24px;
-  padding: 30px; /* 내부 패딩을 약간 늘려 여유 부여 */
+  padding: 20px;
   height: 100%;
   display: flex;
   flex-direction: column;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .dashboard-control-panel {
+  flex-shrink: 0;
   display: flex;
   justify-content: center;  /* 가로 가운데 정렬 */
   align-items: center;
@@ -223,9 +222,17 @@
   flex-shrink: 0;
 }
 
+.dashboard-chart-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  /* 중요: flex 자식이 부모의 높이 제한을 무시할 수 있게 설정 */
+  min-height: 0; 
+}
 
 
-/* [7] 버튼 및 기타 */
+
 .add-btn {
   width: 100%;
   background: var(--primary-color);
@@ -258,6 +265,7 @@
 
 
 .chart-card {
+  width: 90% !important;
   display: flex !important;
   flex-direction: column !important;
   background: #ffffff;
@@ -265,6 +273,7 @@
   padding: 20px !important;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
   height: 100%;
+  overflow: hidden;
 }
 
 .chart-card h3 {
@@ -277,7 +286,7 @@
 }
 
 .chart-card > div:nth-of-type(1) {
-  flex: 1; /* 제목과 요약을 제외한 모든 공간 차지 */
+  flex: 1;
   width: 100% !important;
   height: 100% !important;
   display: flex;
@@ -291,21 +300,21 @@
   flex: 1; 
   width: 100% !important;
   height: 100% !important; 
-  position: relative; /* Chart.js가 높이를 계산하는 기준점 */
-  min-height: 0;      /* flex 자식의 높이 제한 해제 */
-  display: block;     /* flex 대신 block으로 설정하여 canvas가 꽉 차게 함 */
+  position: relative;
+  min-height: 0; 
+  display: block;    
 }
 
 .chart-summary {
   width: 100%;
   margin-top: 15px;
   padding-top: 15px;
-  border-top: 1px solid #f1f1f1; /* 구분선 추가 */
+  border-top: 1px solid #f1f1f1;
   text-align: center;
-  flex-shrink: 0;          /* 내용이 길어도 높이 유지 */
+  flex-shrink: 0; 
 }
 
-/* 수입/지출 색상 강조 (이미지 스타일) */
+
 .chart-summary p {
   font-size: 0.85rem;
   color: #636e72;
@@ -313,19 +322,16 @@
 }
 
 .chart-summary strong {
-  color: #e74c3c; /* 지출 강조색 */
+  color: #e74c3c;
   font-size: 1rem;
 }
 
-/* 퍼센트(%) 표시 등 포인트 컬러 */
 .chart-summary span {
   color: #6c5ce7; /* 보라색 진행률 */
   font-weight: bold;
 }
 
 
-
-/* 수입/지출 금액 색상 (확실하게 재정의) */
 .item-amount.income { 
   color: var(--income-color) !important; 
 }
@@ -336,7 +342,7 @@
 .month-selector-container {
   display: flex;
   align-items: center;
-  justify-content: flex-end; /* 우측 정렬 */
+  justify-content: flex-end;
   gap: 15px;
   padding: 10px 5px;
   flex-shrink: 0;
