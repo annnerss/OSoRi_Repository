@@ -195,7 +195,7 @@ const ExpenseForm = ({ mode = 'personal', groupId }) => {
         <h2 className="section-title" style={{textAlign: 'center', fontSize: '1.8rem', marginTop: 0}}>
           {formData.type === '수입' ? '수입 등록 💵' : '지출 등록 💸'}
         </h2>
-        
+      
         <div className="type-toggle-container">
           <button 
             className={`type-btn ${formData.type === '수입' ? 'active income' : ''}`}
