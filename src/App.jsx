@@ -73,7 +73,7 @@ function App() {
           <Route path='groupAccountBook' element={<GroupAccountBook/>}/>
           <Route path='expenseForm' element={<ExpensePage/>}/>
           <Route path='group/:groupId/expenseForm' element={<ExpensePage/>}/>
-
+            
         </Route>
       </Routes>
     </Router>

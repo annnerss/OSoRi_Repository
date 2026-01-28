@@ -13,7 +13,6 @@ const INCOME_CATEGORIES = [
   "월급", "용돈", "금융소득", "상여금", "기타"
 ];
 
-//모달 컴포넌트
 const TransactionModal = ({ isOpen, type, transaction, onClose, onSave, onDelete }) => {
     const [currentCategories, setCurrentCategories] = useState(EXPENSE_CATEGORIES);
     
@@ -60,75 +59,73 @@ const TransactionModal = ({ isOpen, type, transaction, onClose, onSave, onDelete
     const isDetailMode = type === 'edit' || type === 'view';
 
     return (
-        <div className="modal-overlay" onClick={onClose}>
-            <div className="modal-content" onClick={e => e.stopPropagation()}>
+        <div className="modal-overlay" onClick={onClose} style={{ zIndex: 3000 }}>
+            <div className="modal-content" onClick={e => e.stopPropagation()} 
+                 style={{ width: '95%', maxWidth: '650px', borderRadius: '35px', padding: '45px', background: '#fff', boxShadow: '0 25px 60px rgba(0,0,0,0.2)' }}>
+                
+                <h3 style={{ marginTop: '-10px', marginBottom: '30px', textAlign: 'center', fontSize: '1.5rem', fontWeight: '800' }}>
+                    {isDetailMode ? (isViewMode ? '📄 내역 상세' : '✏️ 내역 수정') : '🗑️ 삭제 확인'}
+                </h3>
+
                 {isDetailMode ? (
                     <>
-                        <h3>{isViewMode ? '📄 내역 상세' : '✏️ 내역 수정'}</h3>
-                        {isViewMode ? (
-                            <div className="modal-type-display" style={{ 
-                                textAlign: 'center', marginBottom: '20px', fontSize: '1.2rem', fontWeight: 'bold',
-                                color: formData.type === 'IN' ? 'var(--income-color)' : 'var(--expense-color)'
-                            }}>
-                                {formData.type === 'IN' ? '수입' : '지출'}
-                            </div>
-                        ) : (
-                            <div className="modal-radio-group">
-                                <label className="radio-label">
-                                    <input type="radio" name="type" value="IN" checked={formData.type === 'IN'} onChange={handleTypeChange} />
-                                    <span style={{color: 'var(--income-color)'}}>수입</span>
-                                </label>
-                                <label className="radio-label">
-                                    <input type="radio" name="type" value="OUT" checked={formData.type === 'OUT'} onChange={handleTypeChange} />
-                                    <span style={{color: 'var(--expense-color)'}}>지출</span>
-                                </label>
-                            </div>
-                        )}
-
-                        <div className="modal-form">
-                            <div><label className="modal-label">날짜</label><input type="date" name="date" className="modal-input" value={formData.date} onChange={handleChange} readOnly={isViewMode} disabled={isViewMode}/></div>
-                            <div><label className="modal-label">내용</label><input type="text" name="text" className="modal-input" value={formData.text} onChange={handleChange} readOnly={isViewMode}/></div>
-                            <div><label className="modal-label">금액</label><input type="number" name="amount" className="modal-input" value={formData.amount} onChange={handleChange} readOnly={isViewMode}/></div>
-                            <div>
-                                <label className="modal-label">카테고리</label>
-                                {isViewMode ? (
-                                    <input type="text" name="category" className="modal-input" value={formData.category} readOnly />
-                                ) : (
-                                    <select name="category" className="modal-input" value={formData.category} onChange={handleChange}>
-                                        {currentCategories.map((cat, index) => <option key={index} value={cat}>{cat}</option>)}
-                                    </select>
-                                )}
-                            </div>
-                            <div><label className="modal-label">메모</label><input type="text" name="memo" className="modal-input" value={formData.memo} onChange={handleChange} readOnly={isViewMode} placeholder={isViewMode ? "" : "메모를 입력하세요"}/></div>
+                        <div className="modal-radio-group" style={{ display: 'flex', justifyContent: 'center', gap: '40px', marginBottom: '30px', paddingBottom: '15px', borderBottom: '1px solid #f1f5f9' }}>
+                            <label className="radio-label" style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+                                <input type="radio" name="type" value="IN" checked={formData.type === 'IN'} onChange={handleTypeChange} style={{ width: '22px', height: '22px' }} disabled={isViewMode} />
+                                <span style={{ color: 'var(--income-color)', fontWeight: '800', fontSize: '1.2rem' }}>수입</span>
+                            </label>
+                            <label className="radio-label" style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+                                <input type="radio" name="type" value="OUT" checked={formData.type === 'OUT'} onChange={handleTypeChange} style={{ width: '22px', height: '22px' }} disabled={isViewMode} />
+                                <span style={{ color: 'var(--expense-color)', fontWeight: '800', fontSize: '1.2rem' }}>지출</span>
+                            </label>
                         </div>
 
-                        <div className="modal-actions">
-                            {isViewMode ? (
-                                <button className="modal-btn confirm" onClick={onClose} style={{width: '100%'}}>확인</button>
-                            ) : (
-                                <>
-                                    <button className="modal-btn cancel" onClick={onClose}>취소</button>
-                                    <button className="modal-btn confirm" onClick={() => onSave({ ...transaction, ...formData })}>수정</button>
-                                </>
-                            )}
+                        <div className="modal-form" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                            <div style={{ maxWidth: '200px' }}>
+                                <label className="modal-label">날짜</label>
+                                <input type="date" name="date" value={formData.date} className="modal-input" readOnly={isViewMode} disabled={isViewMode} onChange={handleChange} />
+                            </div>
+                            <div>
+                                <label className="modal-label">내용</label>
+                                <input type="text" name="text" value={formData.text} className="modal-input" readOnly={isViewMode} onChange={handleChange} />
+                            </div>
+                            <div style={{ maxWidth: '200px' }}>
+                                <label className="modal-label">금액</label>
+                                <input type="number" name="amount" value={formData.amount} className="modal-input" readOnly={isViewMode} onChange={handleChange} />
+                            </div>
+                            <div>
+                                <label className="modal-label">카테고리</label>
+                                <select name="category" value={formData.category} className="modal-input" disabled={isViewMode} onChange={handleChange}>
+                                    {currentCategories.map((cat, i) => <option key={i} value={cat}>{cat}</option>)}
+                                </select>
+                            </div>
+                            <div style={{ gridColumn: 'span 2' }}>
+                                <label className="modal-label">메모</label>
+                                <input type="text" name="memo" value={formData.memo} className="modal-input" readOnly={isViewMode} onChange={handleChange} placeholder="메모를 입력하세요" />
+                            </div>
                         </div>
                     </>
                 ) : (
-                    <>
-                        <h3>🗑️ 삭제 확인</h3>
-                        <p style={{textAlign: 'center', color: '#666', fontSize: '0.95rem', margin: '20px 0'}}><strong>"{transaction?.text}"</strong> 내역을<br/>정말 삭제하시겠습니까?</p>
-                        <div className="modal-actions">
-                            <button className="modal-btn cancel" onClick={onClose}>취소</button>
-                            <button className="modal-btn delete" onClick={() => onDelete(transaction.id)}>삭제</button>
-                        </div>
-                    </>
+                    <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                        <p style={{ fontSize: '1.2rem', color: '#2d3436', lineHeight: '1.6' }}>
+                            <strong>"{transaction?.text}"</strong> 내역을<br/>정말 삭제하시겠습니까?
+                        </p>
+                    </div>
                 )}
+
+                <div className="modal-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '40px' }}>
+                    <button className="modal-btn cancel" onClick={onClose} style={{ padding: '12px 24px', borderRadius: '12px', background: '#f1f3f5', fontWeight: '700', border: 'none' }}>취소</button>
+                    {isDetailMode ? (
+                        !isViewMode && <button className="modal-btn confirm" onClick={() => onSave({ ...transaction, ...formData })} style={{ padding: '12px 24px', borderRadius: '12px', background: 'var(--primary-color)', color: '#fff', fontWeight: '700', border: 'none' }}>수정</button>
+                    ) : (
+                        <button className="modal-btn delete" onClick={() => onDelete(transaction.id)} style={{ padding: '12px 24px', borderRadius: '12px', background: '#ff4d4f', color: '#fff', fontWeight: '700', border: 'none' }}>삭제</button>
+                    )}
+                </div>
             </div>
         </div>
     );
 };
 
-// 메인 페이지
 function GroupAccountBook() {
     const [transactions, setTransactions] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
@@ -153,7 +150,6 @@ function GroupAccountBook() {
     const [searchParams] = useSearchParams();
     const currentGroupId = searchParams.get('groupId');
 
-    //  거래 내역 조회
     const fetchTransactions = () => {
         if (!currentGroupId) return; 
         
@@ -186,7 +182,6 @@ function GroupAccountBook() {
             .catch(error => console.error("그룹 데이터 로드 실패:", error));
     };
 
-    // 그룹 정보 조회
     const fetchGroupInfo = () => {
         if (!currentGroupId) return;
         
@@ -209,12 +204,10 @@ function GroupAccountBook() {
         fetchGroupInfo();
     }, [currentGroupId]); 
 
-    // 모달 관련 
     const openViewModal = (item) => { setSelectedItem(item); setModalType('view'); setIsModalOpen(true); };
     const openEditModal = (e, item) => { e.stopPropagation(); setSelectedItem(item); setModalType('edit'); setIsModalOpen(true); };
     const openDeleteModal = (e, item) => { e.stopPropagation(); setSelectedItem(item); setModalType('delete'); setIsModalOpen(true); };
 
-    // 저장(수정) 처리
     const handleSave = async (updatedData) => {
         try {
             const currentUserId = user?.userId || user?.USER_ID || user?.id;
@@ -242,7 +235,6 @@ function GroupAccountBook() {
         }
     };
 
-    // 삭제 처리
     const handleDelete = async (id) => {
         try {
             await transApi.deleteGroupTrans(id);
@@ -270,9 +262,9 @@ function GroupAccountBook() {
         
         return matchesSearch && matchesType && matchesDate;
     });
+    
     const handleIncomeToggle = () => { if (showIncome) { setShowIncome(false); } else { setShowIncome(true); setShowExpense(false); } };
     const handleExpenseToggle = () => { if (showExpense) { setShowExpense(false); } else { setShowExpense(true); setShowIncome(false); } };
-
 
     const totalIncome = transactions
         .filter(t => t.type === 'IN')
@@ -282,7 +274,6 @@ function GroupAccountBook() {
         .filter(t => t.type === 'OUT')
         .reduce((acc, cur) => acc + Number(cur.amount), 0);
 
-    // 화면 시작
     return (
         <div className="card">
             <TransactionModal 
@@ -307,7 +298,6 @@ function GroupAccountBook() {
                 </div>
             </header>
 
-            {/* 수입/지출  */}
            <div className="summary-section">
             <div className="summary-card income-card">
                     <span className="summary-label">총 수입:</span>
@@ -322,17 +312,31 @@ function GroupAccountBook() {
             <div className="search-wrapper">
                 <div className="filter-group">
                     <label className="checkbox-label">
-                        <input type="checkbox" checked={showIncome} onChange={handleIncomeToggle} />
+                        <input 
+                            type="checkbox" 
+                            checked={showIncome} 
+                            onChange={handleIncomeToggle} 
+                        />
                         <span className="label-text income">수입</span>
                     </label>
                     <label className="checkbox-label">
-                        <input type="checkbox" checked={showExpense} onChange={handleExpenseToggle} />
+                        <input 
+                            type="checkbox" 
+                            checked={showExpense} 
+                            onChange={handleExpenseToggle} 
+                        />
                         <span className="label-text expense">지출</span>
                     </label>
                 </div>
-                <input type="text" className="search-input" placeholder="내역 검색" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+                
+                <input 
+                    type="text" 
+                    className="search-input" 
+                    placeholder="내역 검색" 
+                    value={searchTerm} 
+                    onChange={(e) => setSearchTerm(e.target.value)} 
+                />
             </div>
-
             <div className="list-header">
                 <h3 className="section-title">거래 내역</h3>
                 <div className="date-filter-wrapper">

@@ -56,37 +56,41 @@ function ExpenseChart({ transactions = [], currentDate }) {
     ],
   };
 
+  //도넛그래프 비율
   const options = {
-    responsive: true,
-    maintainAspectRatio: false, // 크기 유연성을 위해 false 설정
-    plugins: {
-      legend: {
-        position: 'right', // 오른쪽에 배치
-        align: 'center',   // 세로 중앙 정렬
-        labels: {
-          usePointStyle: true, // 범례 아이콘을 원형으로 변경
-          pointStyle: 'circle',
-          padding: 20,         // 항목 간 간격
-          font: {
-            size: 12,
-            weight: 'bold'
-          },
-          // 범례 텍스트에 금액이나 퍼센트를 추가하고 싶다면 generateLabels 등을 사용할 수 있습니다.
-        }
-      },
-      tooltip: {
-        callbacks: {
-          label: (context) => ` ${context.label}: ${context.raw.toLocaleString()}원`
-        }
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: {
+      position: 'right',
+      align: 'center',
+      labels: {
+        usePointStyle: true,
+        pointStyle: 'circle',
+        padding: 15,
+        font: {
+          size: 12,
+          weight: 'bold'
+        },
       }
     },
-    layout: {
-      padding: {
-        left: 10,
-        right: 10
+    tooltip: {
+      callbacks: {
+        label: (context) => ` ${context.label}: ${context.raw.toLocaleString()}원`
       }
     }
-  };
+  },
+
+  layout: {
+    padding: {
+      top: 5,     // ★ 기존 30에서 5로 축소: 위쪽 공백 제거
+      bottom: 5,  // ★ 기존 30에서 5로 축소: 아래쪽 공백 제거
+      left: 10,
+      right: 10
+    }
+  },
+  cutout: '50%', 
+};
 
   if (expenses.length === 0) {
     return (
@@ -104,8 +108,8 @@ function ExpenseChart({ transactions = [], currentDate }) {
         <Doughnut data={data} options={options}/>
       </div>
       
-      <div className="chart-summary">
-          총 지출: <strong> {totalExpenditure.toLocaleString()}원 </strong>
+      <div className="chart-summary" style={{ textAlign: 'right', paddingRight: '20px' }}>
+          총 지출: <strong style={{ color: '#e74c3c', fontSize: '1.4rem' }}> {totalExpenditure.toLocaleString()}원 </strong>
       </div>
     </div>
   );
