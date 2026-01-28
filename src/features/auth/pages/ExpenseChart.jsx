@@ -1,6 +1,7 @@
 // src/Pages/Charts/ExpenseChart.jsx
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { Doughnut } from 'react-chartjs-2';
+import styles from './MyAccountBook.module.css';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -56,45 +57,41 @@ function ExpenseChart({ transactions = [], currentDate }) {
     ],
   };
 
-  //도넛그래프 비율
   const options = {
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: {
-    legend: {
-      position: 'right',
-      align: 'center',
-      labels: {
-        usePointStyle: true,
-        pointStyle: 'circle',
-        padding: 15,
-        font: {
-          size: 12,
-          weight: 'bold'
-        },
+    responsive: true,
+    maintainAspectRatio: false, // 크기 유연성을 위해 false 설정
+    plugins: {
+      legend: {
+        position: 'right', // 오른쪽에 배치
+        align: 'center',   // 세로 중앙 정렬
+        labels: {
+          usePointStyle: true, // 범례 아이콘을 원형으로 변경
+          pointStyle: 'circle',
+          padding: 20,         // 항목 간 간격
+          font: {
+            size: 12,
+            weight: 'bold'
+          },
+          // 범례 텍스트에 금액이나 퍼센트를 추가하고 싶다면 generateLabels 등을 사용할 수 있습니다.
+        }
+      },
+      tooltip: {
+        callbacks: {
+          label: (context) => ` ${context.label}: ${context.raw.toLocaleString()}원`
+        }
       }
     },
-    tooltip: {
-      callbacks: {
-        label: (context) => ` ${context.label}: ${context.raw.toLocaleString()}원`
+    layout: {
+      padding: {
+        left: 10,
+        right: 10
       }
     }
-  },
-
-  layout: {
-    padding: {
-      top: 5,     // ★ 기존 30에서 5로 축소: 위쪽 공백 제거
-      bottom: 5,  // ★ 기존 30에서 5로 축소: 아래쪽 공백 제거
-      left: 10,
-      right: 10
-    }
-  },
-  cutout: '50%', 
-};
+  };
 
   if (expenses.length === 0) {
     return (
-      <div className="chart-card">
+      <div className={styles['chart-card']}>
         <h3>📊 카테고리 별 소비 분석</h3>
         <p style={{ padding: '50px 0', color: '#888', textAlign: 'center' }}>분석할 지출 내역이 없습니다.</p>
       </div>
@@ -102,14 +99,14 @@ function ExpenseChart({ transactions = [], currentDate }) {
   }
 
   return (
-    <div className="chart-card">
+    <div className={styles['chart-card']}>
       <h3>📊 카테고리 별 소비 분석</h3>
-      <div className='chart-main-container'>
+      <div className={styles['chart-main-container']}>
         <Doughnut data={data} options={options}/>
       </div>
       
-      <div className="chart-summary" style={{ textAlign: 'right', paddingRight: '20px' }}>
-          총 지출: <strong style={{ color: '#e74c3c', fontSize: '1.4rem' }}> {totalExpenditure.toLocaleString()}원 </strong>
+      <div className={styles['chart-summary']}>
+          총 지출: <strong> {totalExpenditure.toLocaleString()}원 </strong>
       </div>
     </div>
   );

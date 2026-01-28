@@ -333,40 +333,53 @@ input[type="date"] {
     color: #495057 !important;
 }
 
+.chart-main-container {
+  flex: 1; 
+  width: 100% !important;
+  height: 10% !important; 
+  position: relative;
+  min-height: 0; 
+  display: block;    
+}
+
 .chart-card {
   flex: 1;
   display: flex !important;
   flex-direction: column !important;
   background: #ffffff;
   border-radius: 24px;
-  padding: 0 !important;
+  padding: 10px !important;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
   box-sizing: border-box;
   overflow: hidden;
-  min-height: 0;
+  height : 100%; 
+  max-height: 100%;
+  overflow: hidden;
 }
 
-.chart-main-container {
-  flex: 1; 
-  width: 100% !important;
-  height: 100% !important; 
-  position: relative;
-  min-height: 0; 
-  display: block;    
+.chart-card h3 {
+  flex : 0 0 auto;
+  min-height : 0;
+  font-size: 1.5rem;
+
 }
 
 canvas {
-  width: 100% !important;
-  height: 100% !important;
+  display: block;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  padding-bottom: 10px;
 }
 
-.chart-main-container h3 {
-  margin-top: 20px;
-  margin-bottom: 10px;
-  font-size: 1.1rem;
-  font-weight: 700;
-  text-align: center;
+.chart-summary {
+  flex : 0 0 auto;
+  text-align: right;
+  font-size: 1rem;
+  line-height: 1;
+  margin-right: 20px;
 }
+
+
 
 .month-selector-container {
   display: flex !important;
