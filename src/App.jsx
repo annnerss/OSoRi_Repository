@@ -16,11 +16,17 @@ import LoginPage from './features/auth/pages/LoginPage';
 import ExpenseForm from './features/auth/pages/ExpenseForm';
 import ResetPasswordPage from "./features/auth/pages/ResetPasswordPage";
 import MyAccountBook from "./features/auth/pages/MyAccountBook";
+import useAlarmSocket from './features/alarm/useAlarmSocket';
 import ExpensePage from './features/auth/pages/ExpensePage';
 import GroupAccountBook from './features/group/GroupAccountBook';
 
 function App() {
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const storedData = JSON.parse(localStorage.getItem("user"));
+  const currentId = storedData ? storedData.loginId : null;
+  const { notifications } = useAlarmSocket(currentId);
   const [calendarDate, setCalendarDate] = useState(new Date());
+  
   return (
     <Router>
       <Routes>
@@ -48,7 +54,7 @@ function App() {
           path="/mypage"
           element={
             <PrivateRoute>
-              <MyPageLayout />
+              <MyPageLayout notifications={notifications}/>
             </PrivateRoute>
           }
         >
