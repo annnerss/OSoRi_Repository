@@ -9,13 +9,12 @@ function GroupBudgetGauge({ transactions = [], groupbId, monthlyBudget, startDat
     return (
       <>
         <div className="info-card" >
-          <span style={{ fontSize: '3rem', marginBottom: '10px' }}>🎯</span>
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#333', margin: '5px 0' }}>설정된 예산이 없습니다</h3>
-          <p style={{ fontSize: '0.85rem', color: '#888', textAlign: 'center' }}>
+          <span style={{ fontSize: '3rem', marginBottom: '10px' , textAlign: 'center' }}>🎯</span>
+          <h3 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#333', margin: '5px 0', textAlign: 'center'}}>설정된 예산이 없습니다</h3>
+          <p style={{ fontSize: '0.85rem', color: '#888', textAlign: 'center'}}>
             목표 예산을 설정하고<br />계획적인 소비 관리를 시작해보세요!
           </p>
         </div>
-        <br/><br/><br/><br/><br/>
       </>
     );
   }
