@@ -8,7 +8,7 @@ import groupBudgetMemApi from '../../../api/groupBudgetMemApi';
 const EXPENSE_CATEGORIES = ["식비", "생활/마트", "쇼핑", "의료/건강", "교통", "문화/여가", "교육", "기타"];
 const INCOME_CATEGORIES = ["월급", "용돈", "금융소득", "상여금", "기타"];
 
-const ExpenseForm = ({ mode = 'personal', groupId }) => {
+const ExpenseForm = ({ mode = 'personal', groupId, groupStart, groupEnd }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -19,18 +19,30 @@ const ExpenseForm = ({ mode = 'personal', groupId }) => {
   const [splitResult, setSplitResult] = useState({ amount: 0, count: 1 });
   const [groupName, setGroupName] = useState('');
 
+  //날짜 관련 
+  const [groupPeriod, setGroupPeriod] = useState({ start: '', end: '' });
+
   const [currentCategories, setCurrentCategories] = useState(EXPENSE_CATEGORIES);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef(null);
   const [recentItems, setRecentItems] = useState([]);
+  
+  const getToday = () => {
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = ("0" + (date.getMonth() + 1)).slice(-2);
+    const day = ("0" + date.getDate()).slice(-2);
+    return `${year}-${month}-${day}`;
+  };
+
   const [formData, setFormData] = useState({
     type: '지출',
-    transDate: '',      
+    transDate: '',
     title: '',
     originalAmount: '',
-    category: EXPENSE_CATEGORIES[0], 
+    category: EXPENSE_CATEGORIES[0],
     memo: ''
   });
 
@@ -60,28 +72,41 @@ const ExpenseForm = ({ mode = 'personal', groupId }) => {
       title: item.title,
       originalAmount: item.originalAmount,
       category: categories.includes(item.category) ? item.category : categories[0],
-      // 날짜는 비워두기
     });
   };
 
-  // 그룹 멤버 로드
+  // 그룹 멤버
+  const fetchGroupMembers = async () => {
+    try {
+
+      const memData = await groupBudgetMemApi.searchGroupMem(groupId);
+      setMemList(Array.isArray(memData) ? memData.filter(mem => mem.userId !== user?.userId) : []);
+
+      const groupInfoResponse = await transApi.groupInfo(groupId); 
+      
+
+      if (groupInfoResponse) {
+        const sDate = groupInfoResponse.startDate || groupInfoResponse.START_DATE || '';
+        const eDate = groupInfoResponse.endDate || groupInfoResponse.END_DATE || '';
+
+        setGroupPeriod({
+          start: sDate,
+          end: eDate
+        });
+        
+      }
+    } catch (error) {
+      console.error('데이터 로드 실패', error);
+    }
+  };
+
   useEffect(() => {
     if (mode === 'group' && groupId) {
       fetchGroupMembers();
     }
   }, [groupId, mode]);
 
-  const fetchGroupMembers = async () => {
-    try {
-      const data = await groupBudgetMemApi.searchGroupMem(groupId);
-      // 자신은 목록에서 제외
-      setMemList(Array.isArray(data) ? data.filter(mem => mem.userId !== user?.userId) : []);
-    } catch (error) {
-      console.error('멤버 로드 실패', error);
-    }
-  };
-
-  // N빵 금액 계산 로직
+  // 금액 계산 로직
   useEffect(() => {
     if (isSplitActive && formData.originalAmount) {
       const totalAmount = Number(formData.originalAmount);
@@ -104,21 +129,43 @@ const ExpenseForm = ({ mode = 'personal', groupId }) => {
   const handleTypeToggle = (type) => {
     const newCategories = type === '수입' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
     setCurrentCategories(newCategories);
-    setFormData({ 
-      ...formData, 
-      type: type, 
-      transDate: '', 
+    setFormData({
+      ...formData,
+      type: type,
+      transDate: '',
       category: newCategories[0],
       title: '',
       originalAmount: '',
       memo: ''
     });
-    if(type === '수입') setPreviewUrl(null);
+    if (type === '수입') setPreviewUrl(null);
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+
+    if (name === 'transDate' && value) {
+      const today = getToday();
+      const maxLimit = (mode === 'group' && groupPeriod.end && groupPeriod.end < today)
+        ? groupPeriod.end
+        : today;
+
+      if (mode === 'group' && groupPeriod.start && value < groupPeriod.start) {
+        alert(`그룹 활동 시작일(${groupPeriod.start}) 이전은 선택할 수 없습니다.`);
+        return;
+      }
+
+      if (value > maxLimit) {
+        const msg = maxLimit === today
+          ? "미래 날짜는 입력할 수 없습니다."
+          : `그룹 종료일(${maxLimit})을 넘길 수 없습니다.`;
+        alert(msg);
+        setFormData(prev => ({ ...prev, [name]: maxLimit }));
+        return;
+      }
+    }
+
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const onDragOver = (e) => { e.preventDefault(); setIsDragging(true); };
@@ -160,10 +207,32 @@ const ExpenseForm = ({ mode = 'personal', groupId }) => {
       const data = await transApi.receiptAnalyze(serverFormData);
       if (data) {
         const { title, transDate, originalAmount, category } = data;
+        const formattedDate = formatDateString(transDate);
+
+        const today = getToday();
+        const maxLimit = (mode === 'group' && groupPeriod.end && groupPeriod.end < today)
+          ? groupPeriod.end
+          : today;
+
+        let finalDate = formattedDate;
+
+        if (formattedDate) {
+          if (mode === 'group' && groupPeriod.start && formattedDate < groupPeriod.start) {
+            alert(`그룹 시작일(${groupPeriod.start}) 이전 날짜가 감지되어 시작일로 변경되었습니다.`);
+            finalDate = groupPeriod.start;
+          }
+          else if (formattedDate > maxLimit) {
+            const msg = maxLimit === today
+              ? "미래 날짜는 등록할 수 없어 오늘 날짜로 변경되었습니다."
+              : `그룹 종료일(${maxLimit}) 이후 날짜는 등록할 수 없어 종료일로 변경되었습니다.`;
+            alert(`${msg}`);
+            finalDate = maxLimit;
+          }
+        }
         setFormData(prev => ({
           ...prev,
           title: title || '',
-          transDate: formatDateString(transDate),
+          transDate: finalDate,
           originalAmount: originalAmount || '',
           category: EXPENSE_CATEGORIES.includes(category) ? category : '기타',
         }));
@@ -172,28 +241,61 @@ const ExpenseForm = ({ mode = 'personal', groupId }) => {
     } catch (error) { alert("영수증 분석 실패"); } finally { setIsLoading(false); }
   };
 
+  const today = getToday();
+  const maxLimit = (mode === 'group' && groupPeriod.end && groupPeriod.end < today)
+    ? groupPeriod.end
+    : today;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.transDate || !formData.originalAmount || !formData.title) {
       alert("필수 입력 항목을 확인해주세요.");
       return;
     }
+
+    const todayStr = getToday();
+    const startLimit = groupPeriod.start;
+    const endLimit = groupPeriod.end;
+
+    const limitDate = (mode === 'group' && endLimit && endLimit < todayStr)
+      ? endLimit
+      : todayStr;
+
+    if (mode === 'group') {
+      if (startLimit && formData.transDate < startLimit) {
+        alert(`[저장 실패] 그룹 활동 시작일(${startLimit}) 이전 날짜입니다.\n활동 기간 내의 날짜만 입력해주세요.`);
+        return;
+      }
+    }
+
+    const inputDate = new Date(formData.transDate);
+    const startDate = groupPeriod.start ? new Date(groupPeriod.start) : null;
+    const todayDate = new Date(getToday());
+
+    if (mode === 'group' && startDate && inputDate < startDate) {
+      alert(`[저장 실패] 그룹 활동 시작일(${groupPeriod.start}) 이전 날짜입니다.`);
+      return;
+    }
+
+    if (inputDate > todayDate) {
+      alert("[저장 실패] 미래 날짜는 저장할 수 없습니다.");
+      return;
+    }
+
     try {
       const isIncome = formData.type === '수입';
       const transType = isIncome ? 'IN' : 'OUT';
 
       if (mode === 'group') {
         if (!groupId) return;
-        // 그룹 가계부 저장
-        await transApi.groupTransSave({ 
-          ...formData, 
-          userId: user?.userId, 
-          groupBId: Number(groupId), 
-          type: transType, 
-          nickName: user?.nickName || user?.nickname || "" 
+        await transApi.groupTransSave({
+          ...formData,
+          userId: user?.userId,
+          groupBId: Number(groupId),
+          type: transType,
+          nickName: user?.nickName || user?.nickname || ""
         });
-        
-        // 분할 저장
+
         if (isSplitActive && selectedMemList.length > 0) {
           const totalPeople = selectedMemList.length + 1;
           const splitAmount = Math.floor(Number(formData.originalAmount) / totalPeople);
@@ -214,7 +316,7 @@ const ExpenseForm = ({ mode = 'personal', groupId }) => {
           await Promise.all(splitPromises);
         }
       } else {
-        await transApi.myTransSave({ ...formData, userId: user?.userId ,type: transType });
+        await transApi.myTransSave({ ...formData, userId: user?.userId, type: transType });
       }
       alert("저장되었습니다!");
       navigate(mode === 'group' ? `/mypage/groupAccountBook?groupId=${groupId}` : '/mypage/myAccountBook');
@@ -236,14 +338,14 @@ const ExpenseForm = ({ mode = 'personal', groupId }) => {
           </div>
         </div>
 
-        {mode === 'personal'&& recentItems.length > 0 && (
+        {mode === 'personal' && recentItems.length > 0 && (
           <div className="recent-container">
             <p className="recent-title">⚡ 최근 내역으로 빠른 입력</p>
             <div className="recent-list">
               {recentItems.map((item, index) => (
-                <button 
-                  key={index} 
-                  type="button" 
+                <button
+                  key={index}
+                  type="button"
                   className={`recent-item-chip ${item.type === 'IN' ? 'income' : 'expense'}`}
                   onClick={() => handleQuickFill(item)}
                 >
@@ -263,14 +365,29 @@ const ExpenseForm = ({ mode = 'personal', groupId }) => {
                 <div className="re-upload-overlay"><span>🔄 다시 올리기</span></div>
               </>
             ) : (
-              <><div className="ocr-icon" style={{fontSize: '3rem'}}>🧾</div><p className="ocr-text">영수증을 여기로 끌어오거나 클릭하세요</p></>
+              <><div className="ocr-icon" style={{ fontSize: '3rem' }}>🧾</div><p className="ocr-text">영수증을 여기로 끌어오거나 클릭하세요</p></>
             )}
-            <input type="file" ref={fileInputRef} style={{display: 'none'}} accept="image/*" onChange={onFileInput}/>
+            <input type="file" ref={fileInputRef} style={{ display: 'none' }} accept="image/*" onChange={onFileInput} />
           </div>
         )}
 
         <form onSubmit={handleSubmit}>
-          <div className="input-group"><label className="input-label">날짜</label><input type="date" name="transDate" className="input-field" value={formData.transDate} onChange={handleChange} required /></div>
+          <div className="input-group"><label className="input-label">날짜</label><input type="date" name="transDate" className="input-field" value={formData.transDate} onChange={handleChange} min={mode === 'group' ? groupPeriod.start : ''} max={maxLimit}
+            onBlur={(e) => {
+              const val = e.target.value;
+              if (!val) return;
+              if (mode === 'group' && groupPeriod.start && val < groupPeriod.start) {
+                alert(`그룹 활동 시작일(${groupPeriod.start}) 이전은 선택할 수 없습니다.`);
+                setFormData(prev => ({ ...prev, transDate: groupPeriod.start }));
+              }
+              else if (val > maxLimit) {
+                const msg = maxLimit === today
+                  ? "미래 날짜는 등록할 수 없습니다."
+                  : `그룹 종료일(${maxLimit}) 이후는 등록할 수 없습니다.`;
+                alert(msg);
+                setFormData(prev => ({ ...prev, transDate: maxLimit }));
+              }
+            }} required /></div>
           <div className="input-group"><label className="input-label">{formData.type === '수입' ? '입금처 / 내용' : '거래처 / 가게명'}</label><input type="text" name="title" className="input-field" placeholder={formData.type === '수입' ? "예: 회사, 부모님" : "예: 스타벅스, 식당"} value={formData.title} onChange={handleChange} required /></div>
           <div className="input-group"><label className="input-label">금액</label><div className="amount-wrapper"><input type="number" name="originalAmount" className="input-field" placeholder="0" value={formData.originalAmount} onChange={handleChange} required /><span className="currency-unit">원</span></div></div>
           <div className="input-group"><label className="input-label">카테고리</label><select name="category" className="input-field" value={formData.category} onChange={handleChange}>{currentCategories.map((cat, index) => <option key={index} value={cat}>{cat}</option>)}</select></div>
@@ -284,10 +401,15 @@ const ExpenseForm = ({ mode = 'personal', groupId }) => {
               </div>
               {isSplitActive && (
                 <>
+                
                   <div className="member-list-grid">
                     {memList.length > 0 ? memList.map((mem) => (
                       <label key={mem.userId} className="member-item-label">
-                        <input type="checkbox" checked={selectedMemList.some(m => m.userId === mem.userId)} onChange={() => handleMemberToggle(mem)} />
+                        <input 
+                          type="checkbox" 
+                          checked={selectedMemList.some(m => m.userId === mem.userId)}
+                          onChange={() => handleMemberToggle(mem)} 
+                        />
                         <span className="member-nickname">{mem.nickName}</span>
                       </label>
                     )) : <p className="no-member-text">그룹에 다른 멤버가 없습니다.</p>}

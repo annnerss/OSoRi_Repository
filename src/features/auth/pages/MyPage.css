@@ -199,6 +199,7 @@
 }
 
 .info-card {
+  max-height: 400px;
   height : 85%;
   background: white;
   padding: 30px;
@@ -251,14 +252,10 @@
 .logout-btn:hover { color: #ff4d4f; }
 
 .profile-fixed-card {
-  margin-bottom: 30px;
-}
-
-.profile-main {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border: 1px solid #e0e6ed;
+    display: flex;
+    justify-content: flex-start;
+    width: 100%;
+    margin-bottom: 20px;
 }
 
 .profile-details h3 { margin: 0; font-size: 1.4rem; }

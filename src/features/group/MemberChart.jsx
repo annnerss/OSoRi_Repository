@@ -12,18 +12,21 @@ import {
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-function MemberChart({ transactions = [], groupbId, currentDate }) {
-  if (!currentDate || !(currentDate instanceof Date)) return null;
+function MemberChart({ transactions = [], groupbId, startDate, endDate }) {
+  if (!startDate || !endDate) return null;
 
-  const targetYear = currentDate.getFullYear();
-  const targetMonth = String(currentDate.getMonth() + 1).padStart(2, '0');
-  const targetYM = `${targetYear}-${targetMonth}`;
+  const start = new Date(startDate);
+  const end = new Date(endDate);
 
-  const groupExpenses = transactions.filter(t => 
-    String(t.groupbId) === String(groupbId) && 
-    t.type?.toUpperCase() === 'OUT' && 
-    t.date?.startsWith(targetYM)
-  );
+  const groupExpenses = transactions.filter(t => {
+    const transDate = new Date(t.date);
+    return (
+      String(t.groupbId) === String(groupbId) && 
+      t.type?.toUpperCase() === 'OUT' && 
+      transDate >= start && 
+      transDate <= end
+    );
+  });
 
   const memberData = groupExpenses.reduce((acc, curr) => {
     const name = curr.nickname || '익명';

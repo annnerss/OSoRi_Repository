@@ -1,5 +1,5 @@
 :root {
-  --primary-color: #00008B;
+  --primary-color: #0066ff;
   --income-color: #2ecc71;
   --expense-color: #e74c3c;
   --bg-color: #f8f9fa;
@@ -49,7 +49,7 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 20px; /* 오른쪽 내부 차트 카드 사이의 간격 */
+  gap: 20px;
 }
 
 
@@ -463,7 +463,70 @@
 
 /*차트 관련 css*/
 .chart-main-container{
-  height: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.chart-card {
+  flex: 1;
+  /* ✅ max-height를 제거하거나 충분히 크게 설정하여 내부 요소가 잘리지 않게 함 */
+  max-height: none; 
+  min-height: 400px; /* 100% 배율에서 요소들이 겹치지 않는 최소 높이 확보 */
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  padding: 25px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+.info-card {
+  flex: 1; /* ✅ 카드 내부 내용물도 높이를 꽉 채우도록 설정 */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* 내용물 사이 간격 균등 분배 */
+  height: 100%; /* 부모 높이 상속 */
+}
+
+
+/* 컨테이너 높이를 충분히 확보 */
+.rolling-container {
+  height: 40px; 
+  overflow: hidden;
+  margin-top: 10px;
+}
+
+.rolling-wrapper {
+  padding: 0 0 0 15px;
+  display: flex;
+  flex-direction: column;
+  /* cubic-bezier를 넣어주면 훨씬 쫀득하게 올라갑니다 */
+  animation: slideUpInfinite 6s cubic-bezier(0.65, 0, 0.35, 1) infinite; 
+}
+
+.rolling-text {
+  height: 40px;      /* 높이를 26px -> 40px로 변경 */
+  line-height: 40px; /* 세로 중앙 정렬 */
+  margin: 0;
+  font-size: 20px; /* 글자 크기도 조금 더 키워볼까요? */
+  color: #888;
+  white-space: nowrap;
+}
+
+@keyframes slideUpInfinite {
+  /* 0~30%: 1번 아이템 정지 */
+  0%, 30% { transform: translateY(0); }
+  
+  /* 30~35%: 1번 -> 2번으로 이동 (이동거리가 40px로 늘어나서 더 많이 움직입니다) */
+  35%, 65% { transform: translateY(-40px); }
+  
+  /* 65~70%: 2번 -> 3번(복사본)으로 이동 */
+  70%, 95% { transform: translateY(-80px); }
+  
+  /* 마지막 순간 복귀 */
+  100% { transform: translateY(-80px); } 
 }
 
 

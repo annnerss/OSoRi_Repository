@@ -15,12 +15,18 @@ const INCOME_CATEGORIES = [
   "월급", "용돈", "금융소득", "상여금", "기타"
 ];
 
-const TransactionModal = ({ isOpen, type, transaction, onClose, onSave, onDelete }) => {
+const TransactionModal = ({ isOpen, type, transaction, onClose, onSave, onDelete, groupInfo }) => {
     const [currentCategories, setCurrentCategories] = useState(EXPENSE_CATEGORIES);
     
     const [formData, setFormData] = useState({
         text: '', amount: 0, date: '', category: '기타', memo: '', type: 'OUT'
     });
+
+    const today = new Date().toISOString().split('T')[0];
+
+    const maxDate = (groupInfo?.endDate && groupInfo.endDate < today) 
+                    ? groupInfo.endDate 
+                    : today;
 
     useEffect(() => {
         if (transaction) {
@@ -44,6 +50,24 @@ const TransactionModal = ({ isOpen, type, transaction, onClose, onSave, onDelete
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleDateBlur = (e) => {
+        const val = e.target.value;
+        if (!val) return;
+
+        if (groupInfo?.startDate && val < groupInfo.startDate) {
+            alert(`그룹 시작일(${groupInfo.startDate}) 이전은 등록할 수 없습니다.`);
+            setFormData(prev => ({ ...prev, date: groupInfo.startDate }));
+        } 
+
+        else if (val > maxDate) {
+            const msg = maxDate === today 
+                        ? "미래 날짜는 등록할 수 없습니다." 
+                        : `그룹 종료일(${maxDate}) 이후는 등록할 수 없습니다.`;
+            alert(msg);
+            setFormData(prev => ({ ...prev, date: maxDate }));
+        }
     };
 
     const handleTypeChange = (e) => {
@@ -85,7 +109,8 @@ const TransactionModal = ({ isOpen, type, transaction, onClose, onSave, onDelete
                         <div className="modal-form" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                             <div style={{ maxWidth: '200px' }}>
                                 <label className="modal-label">날짜</label>
-                                <input type="date" name="date" value={formData.date} className="modal-input" readOnly={isViewMode} disabled={isViewMode} onChange={handleChange} />
+                                <input type="date" name="date" value={formData.date} className="modal-input" readOnly={isViewMode} disabled={isViewMode} 
+                                       onChange={handleChange} onBlur={handleDateBlur} min={groupInfo?.startDate}  max={maxDate}/>
                             </div>
                             <div>
                                 <label className="modal-label">내용</label>
@@ -288,7 +313,7 @@ function GroupAccountBook() {
                     <div className="card">
                         <TransactionModal 
                             isOpen={isModalOpen} type={modalType} transaction={selectedItem}
-                            onClose={() => setIsModalOpen(false)} onSave={handleSave} onDelete={handleDelete}
+                            onClose={() => setIsModalOpen(false)} onSave={handleSave} onDelete={handleDelete} groupInfo={groupInfo}
                         />
 
                         <header className="group-header">
@@ -401,7 +426,8 @@ function GroupAccountBook() {
                                 transactions={transactions} 
                                 groupbId={currentGroupId} 
                                 monthlyBudget={groupInfo.budget} 
-                                currentDate={currentDate}
+                                startDate={groupInfo.startDate}
+                                endDate={groupInfo.endDate}
                             />
                         </div>
                     </div>
@@ -410,7 +436,8 @@ function GroupAccountBook() {
                             <MemberChart
                                 transactions={transactions} 
                                 groupbId={currentGroupId} 
-                                currentDate={currentDate}
+                                startDate={groupInfo.startDate}
+                                endDate={groupInfo.endDate}
                             />
                         </div>
                     </div>
