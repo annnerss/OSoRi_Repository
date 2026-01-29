@@ -1,0 +1,83 @@
+.ftList {
+  display: flex;
+  flex-direction: column;
+  margin-top: 16px;
+}
+
+.ftRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.ftRow:last-child {
+  border-bottom: none;
+}
+
+.ftRowMain {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ftRowName {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.ftName {
+  font-size: 16px;
+  font-weight: 800;
+  color: #111;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ftRowSub {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.ftAmount {
+  font-size: 18px;
+  font-weight: 900;
+  color: #111;
+  white-space: nowrap;
+}
+
+.ftRowActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+/* 기존 .alarm 버튼이 너무 커서 리스트용으로만 살짝 축소 */
+.alarm.ftAction {
+  padding: 10px 14px;
+  margin: 0;
+  border-radius: 12px;
+}
+
+@media (max-width: 640px) {
+  .ftRow {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .ftRowActions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}

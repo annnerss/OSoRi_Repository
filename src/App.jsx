@@ -17,6 +17,7 @@ import ExpenseForm from './features/auth/pages/ExpenseForm';
 import ResetPasswordPage from "./features/auth/pages/ResetPasswordPage";
 import MyAccountBook from "./features/auth/pages/MyAccountBook";
 import ExpensePage from './features/auth/pages/ExpensePage';
+import FixedTransPage from "./features/auth/pages/FixedTransPage"; // 추가
 
 function App() {
   const [calendarDate, setCalendarDate] = useState(new Date());
@@ -71,6 +72,8 @@ function App() {
           <Route path="myAccountBook" element={<MyAccountBook />} />
           <Route path='expenseForm' element={<ExpensePage/>}/>
           <Route path='group/:groupId/expenseForm' element={<ExpensePage/>}/>
+          <Route path="fixedTrans" element={<FixedTransPage />} />
+
 
         </Route>
       </Routes>
