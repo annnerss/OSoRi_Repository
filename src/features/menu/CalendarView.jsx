@@ -127,80 +127,90 @@ function CalendarView({ currentDate, setCurrentDate }) {
   };
 
   return (
-    <div className="calendar-page-container">
-      <div className="ledger-filter-bar" style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
-        <label className="filter-chip">
-          <input type="checkbox" checked={isAllActive} onChange={toggleAll} />
-          <span>전체 {isAllActive ? '해제' : '선택'}</span>
-        </label>
-        <div className="divider" style={{ width: '1px', background: '#ddd', margin: '0 10px' }}></div>
-        {ledgers.map(l => (
-          <label key={l.id} className="filter-chip">
-            <input type="checkbox" checked={activeLedgers.includes(l.id)} onChange={() => toggleLedger(l.id)} />
-            <span className="dot" style={{ backgroundColor: l.color, display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', margin: '0 5px' }}></span>
-            <span>{l.name}</span>
+    <main className="fade-in">
+      <div className="calendar-page-container">
+        <div className='content-header'>
+          <h2>캘린더뷰</h2>
+        </div>
+        <div className="ledger-filter-bar" style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
+          <label className="filter-chip">
+            <input type="checkbox" checked={isAllActive} onChange={toggleAll} />
+            <span>전체 {isAllActive ? '해제' : '선택'}</span>
           </label>
-        ))}
-      </div>
-
-      <div className="calendar-content-wrapper" style={{ display: 'flex', gap: '20px' }}>
-        <div className="calendar-card" style={{ flex: 7 }}>
-          <h2 className="calendar-header">📅 {user?.nickName ||'회원'}님의 소비 달력</h2>
-          <Calendar 
-            onClickDay={(date) => setSelectedDate(date.toLocaleDateString('en-CA'))} 
-            tileContent={renderTileContent}
-            formatDay={(locale, date) => date.getDate()}
-            activeStartDate={currentDate}
-            onActiveStartDateChange={({activeStartDate}) => setCurrentDate(activeStartDate)}
-          />
-
-          <div className="monthly-summary" style={{
-              textAlign: 'right',
-              marginTop: '15px',
-              paddingRight: '10px',
-              fontSize: '1.1rem',
-              color: '#333'
-            }}>
-              <span style={{ fontSize: '0.9rem', color: '#888', marginRight: '5px' }}>
-                {currentDate.getMonth() + 1}월 총 지출:
-              </span>
-              <strong style={{ color: '#e74c3c', fontSize: '1.3rem' }}>
-                {monthlyTotalExpense.toLocaleString()}
-              </strong>원
-            </div>
+          <div className="divider" style={{ width: '1px', background: '#ddd', margin: '0 10px' }}></div>
+          {ledgers.map(l => (
+            <label key={l.id} className="filter-chip">
+              <input type="checkbox" checked={activeLedgers.includes(l.id)} onChange={() => toggleLedger(l.id)} />
+              <span className="dot" style={{ backgroundColor: l.color, display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', margin: '0 5px' }}></span>
+              <span>{l.name}</span>
+            </label>
+          ))}
         </div>
 
+        <div className="calendar-content-wrapper" style={{ display: 'flex', gap: '20px' }}>
+          <div className="calendar-card" style={{ flex: 7 }}>
+            <div className='calender-title'>
+              <h2 className="calendar-header">📅 {user?.nickName ||'회원'}님의 소비 달력</h2>
 
+              <div className="calendar-summary">
+                  <span style={{ fontSize: '0.9rem', color: '#888', marginRight: '5px' }}>
+                    {currentDate.getMonth() + 1}월 총 지출:
+                  </span>
+                  <strong style={{ color: '#e74c3c', fontSize: '1.3rem' }}>
+                    {monthlyTotalExpense.toLocaleString()}
+                  </strong>원
+                </div>
+            </div>
 
+            <Calendar 
+              onClickDay={(date) => setSelectedDate(date.toLocaleDateString('en-CA'))} 
+              tileContent={renderTileContent}
+              formatDay={(locale, date) => date.getDate()}
+              activeStartDate={currentDate}
+              onActiveStartDateChange={({activeStartDate}) => setCurrentDate(activeStartDate)}
+              calendarType="gregory"
+              
+              // 🌟 JSX 안에서 높이를 주는 법 (객체 형태)
+              style={{ 
+                height: '100%', 
+                display: 'flex', 
+                flexDirection: 'column' 
+              }}
+            />
+            {/* 주석 */}
 
-        <div className="detail-card" style={{ flex: 3 }}>
-          <h3 className="detail-title">{selectedDate} 내역</h3>
-          <div className="detail-list-container">
-            {details.length > 0 ? (
-              <ul className="detail-list" style={{ listStyle: 'none', padding: 0 }}>
-                {details.map((item, idx) => {
-                  const ledger = ledgers.find(l => String(l.id) === String(item.ledgerId));
-                  return (
-                    <li key={idx} className="detail-item" style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #eee' }}>
-                      <div>
-                        <span className="ledger-badge" style={{ backgroundColor: ledger?.color, color: '#fff', padding: '2px 5px', borderRadius: '4px', fontSize: '12px' }}>{ledger?.name}</span>
-                        <div style={{ fontWeight: 'bold' }}>{item.title}</div>
-                        <div style={{ fontSize: '12px', color: '#888' }}>{item.category} {item.nickname && `| ${item.nickname}`}</div>
-                      </div>
-                      <div className={`item-amount ${item.type}`} style={{ color: item.type === 'IN' ? 'green' : 'red' }}>
-                        {item.type === 'IN' ? '+' : '-'}{item.amount.toLocaleString()}원
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
-            ) : (
-              <p>거래 내역이 없습니다.</p>
-            )}
+            
+          </div>
+
+          <div className="detail-card" style={{ flex: 3 }}>
+            <h3 className="detail-title">{selectedDate} 내역</h3>
+            <div className="detail-list-container">
+              {details.length > 0 ? (
+                <ul className="detail-list" style={{ listStyle: 'none', padding: 0 }}>
+                  {details.map((item, idx) => {
+                    const ledger = ledgers.find(l => String(l.id) === String(item.ledgerId));
+                    return (
+                      <li key={idx} className="detail-item" style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #eee' }}>
+                        <div>
+                          <span className="ledger-badge" style={{ backgroundColor: ledger?.color, color: '#fff', padding: '2px 5px', borderRadius: '4px', fontSize: '12px' }}>{ledger?.name}</span>
+                          <div style={{ fontWeight: 'bold' }}>{item.title}</div>
+                          <div style={{ fontSize: '12px', color: '#888' }}>{item.category} {item.nickname && `| ${item.nickname}`}</div>
+                        </div>
+                        <div className={`item-amount ${item.type}`} style={{ color: item.type === 'IN' ? 'green' : 'red' }}>
+                          {item.type === 'IN' ? '+' : '-'}{item.amount.toLocaleString()}원
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : (
+                <p>거래 내역이 없습니다.</p>
+              )}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
 

@@ -9,6 +9,10 @@
   --text-sub: #636e72;
 }
 
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
 body {
   font-family: 'Pretendard', sans-serif;
   background-color: var(--bg-color);

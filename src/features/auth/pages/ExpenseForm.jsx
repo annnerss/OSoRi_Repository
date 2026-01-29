@@ -28,7 +28,6 @@ const ExpenseForm = ({ mode = 'personal', groupId, groupStart, groupEnd }) => {
   const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef(null);
   const [recentItems, setRecentItems] = useState([]);
-
   const getToday = () => {
     const date = new Date();
     const year = date.getFullYear();
@@ -39,10 +38,10 @@ const ExpenseForm = ({ mode = 'personal', groupId, groupStart, groupEnd }) => {
 
   const [formData, setFormData] = useState({
     type: '지출',
-    transDate: '',      
+    transDate: '',
     title: '',
     originalAmount: '',
-    category: EXPENSE_CATEGORIES[0], 
+    category: EXPENSE_CATEGORIES[0],
     memo: ''
   });
 
@@ -129,16 +128,16 @@ const ExpenseForm = ({ mode = 'personal', groupId, groupStart, groupEnd }) => {
   const handleTypeToggle = (type) => {
     const newCategories = type === '수입' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
     setCurrentCategories(newCategories);
-    setFormData({ 
-      ...formData, 
-      type: type, 
-      transDate: '', 
+    setFormData({
+      ...formData,
+      type: type,
+      transDate: '',
       category: newCategories[0],
       title: '',
       originalAmount: '',
       memo: ''
     });
-    if(type === '수입') setPreviewUrl(null);
+    if (type === '수입') setPreviewUrl(null);
   };
 
   const handleChange = (e) => {
@@ -316,7 +315,7 @@ const ExpenseForm = ({ mode = 'personal', groupId, groupStart, groupEnd }) => {
           await Promise.all(splitPromises);
         }
       } else {
-        await transApi.myTransSave({ ...formData, userId: user?.userId ,type: transType });
+        await transApi.myTransSave({ ...formData, userId: user?.userId, type: transType });
       }
       alert("저장되었습니다!");
       navigate(mode === 'group' ? `/mypage/groupAccountBook?groupId=${groupId}` : '/mypage/myAccountBook');
@@ -365,9 +364,9 @@ const ExpenseForm = ({ mode = 'personal', groupId, groupStart, groupEnd }) => {
                 <div className="re-upload-overlay"><span>🔄 다시 올리기</span></div>
               </>
             ) : (
-              <><div className="ocr-icon" style={{fontSize: '3rem'}}>🧾</div><p className="ocr-text">영수증을 여기로 끌어오거나 클릭하세요</p></>
+              <><div className="ocr-icon" style={{ fontSize: '3rem' }}>🧾</div><p className="ocr-text">영수증을 여기로 끌어오거나 클릭하세요</p></>
             )}
-            <input type="file" ref={fileInputRef} style={{display: 'none'}} accept="image/*" onChange={onFileInput}/>
+            <input type="file" ref={fileInputRef} style={{ display: 'none' }} accept="image/*" onChange={onFileInput} />
           </div>
         )}
 
@@ -401,7 +400,6 @@ const ExpenseForm = ({ mode = 'personal', groupId, groupStart, groupEnd }) => {
               </div>
               {isSplitActive && (
                 <>
-
                   <div className="member-list-grid">
                     {memList.length > 0 ? memList.map((mem) => (
                       <label key={mem.userId} className="member-item-label">
