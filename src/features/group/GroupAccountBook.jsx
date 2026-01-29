@@ -426,7 +426,8 @@ function GroupAccountBook() {
                                 transactions={transactions} 
                                 groupbId={currentGroupId} 
                                 monthlyBudget={groupInfo.budget} 
-                                currentDate={currentDate}
+                                startDate={groupInfo.startDate}
+                                endDate={groupInfo.endDate}
                             />
                         </div>
                     </div>
@@ -435,7 +436,8 @@ function GroupAccountBook() {
                             <MemberChart
                                 transactions={transactions} 
                                 groupbId={currentGroupId} 
-                                currentDate={currentDate}
+                                startDate={groupInfo.startDate}
+                                endDate={groupInfo.endDate}
                             />
                         </div>
                     </div>
