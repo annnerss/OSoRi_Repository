@@ -4,29 +4,47 @@ import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-function GroupBudgetGauge({ transactions = [], groupbId, monthlyBudget, currentDate }) {
-  if (!currentDate || !(currentDate instanceof Date)) return null;
+function GroupBudgetGauge({ transactions = [], groupbId, monthlyBudget, startDate, endDate }) {
+  if(!monthlyBudget || monthlyBudget <= 0) {
+    return (
+      <>
+        <div className="info-card" >
+          <span style={{ fontSize: '3rem', marginBottom: '10px' }}>🎯</span>
+          <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#333', margin: '5px 0' }}>설정된 예산이 없습니다</h3>
+          <p style={{ fontSize: '0.85rem', color: '#888', textAlign: 'center' }}>
+            목표 예산을 설정하고<br />계획적인 소비 관리를 시작해보세요!
+          </p>
+        </div>
+        <br/><br/><br/><br/><br/>
+      </>
+    );
+  }
+  
+  
+  if (!startDate || !endDate) return null;
 
-  const targetYear = currentDate.getFullYear();
-  const targetMonth = String(currentDate.getMonth() + 1).padStart(2, '0');
-  const targetYM = `${targetYear}-${targetMonth}`;
+  const start = new Date(startDate);
+  const end = new Date(endDate);
   
   const currentSpent = transactions
-    .filter(t => 
-      String(t.groupbId) === String(groupbId) && 
-      t.type?.toUpperCase() === 'OUT' && 
-      t.date?.startsWith(targetYM)
-    )
+    .filter(t => {
+      const transDate = new Date(t.date);
+      return (
+        String(t.groupbId) === String(groupbId) && 
+        t.type?.toUpperCase() === 'OUT' && 
+        transDate >= start &&
+        transDate <= end
+      )
+    })
     .reduce((sum, t) => sum + Math.abs(t.amount || 0), 0);
 
-  // 1. 초과 금액 및 예측치 계산
-  const overAmount = currentSpent - monthlyBudget; // 초과액 계산
-  const lastDay = new Date(targetYear, currentDate.getMonth() + 1, 0).getDate();
+  const totalDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
   const today = new Date();
-  const dayPassed = today.getMonth() === currentDate.getMonth() ? today.getDate() : lastDay;
-  const projected = dayPassed > 0 ? Math.round((currentSpent / dayPassed) * lastDay) : currentSpent;
-  
+  const diffTime = today - start;
+  const elapsedDays = Math.max(1, Math.min(totalDays, Math.ceil(diffTime / (1000 * 60 * 60 * 24))));
   const percent = monthlyBudget > 0 ? Math.round((currentSpent / monthlyBudget) * 100) : 0;
+  const availableBudget = (monthlyBudget - currentSpent) > 0 ? monthlyBudget - currentSpent : 0;
+  const overAmount = monthlyBudget-currentSpent
 
   const getStatusColor = (pct) => {
     if (pct >= 90) return '#ff4d4f';
@@ -64,14 +82,14 @@ function GroupBudgetGauge({ transactions = [], groupbId, monthlyBudget, currentD
 
   return (
     <div className="info-card">
-      <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '10px' }}>🎯 예산 달성률</h3>
-      <div style={{ height: '180px', position: 'relative' }}>
+      <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '10px' }}>🎯 예산 소진률</h3>
+      <div style={{ position: 'relative', width: '100%', height: '200px' }}>
         <Doughnut data={data} options={options} />
         <div style={{ 
             position: 'absolute', top: '70%', left: '50%', 
-            transform: 'translate(-50%, -50%)', textAlign: 'center' 
+            transform: 'translate(-50%, -50%)', textAlign: 'center', 
         }}>
-          <span style={{ fontSize: '1.8rem', fontWeight: '800', color: mainColor }}>
+          <span style={{ fontSize: '2.2rem', fontWeight: '800', color: mainColor }}>
             {percent}%
           </span>
           <p style={{ fontSize: '0.8rem', color: '#888', margin: 0 }}>
@@ -85,19 +103,33 @@ function GroupBudgetGauge({ transactions = [], groupbId, monthlyBudget, currentD
         padding: '12px', 
         borderRadius: '12px', 
         background: `${mainColor}10`,
-        border: `1px solid ${mainColor}40`
-      }}>
-        <p style={{ color: mainColor, fontSize: '0.85rem', margin: 0, fontWeight: '800' }}>
-          {/* ✅ 템플릿 리터럴 문법 수정 (백틱 사용) */}
-          {percent >= 100 
-            ? `💸 ${overAmount.toLocaleString()}원 초과지출!` 
-            : percent >= 90 
-            ? '⚠️ 예산의 거의 다 썼어요! 지출에 주의하세요.' 
-            : percent >= 70 
-            ? '🟡 지출이 늘어나고 있어요. 확인이 필요합니다.' 
-            : '✅ 아주 잘하고 계시네요! 계획적인 소비 중입니다.'}
-        </p>
+        border: `1px solid ${mainColor}40`,
+        }}>
+        <div className='rolling-container'>
+          <div className='rolling-wrapper'>
+
+            <p className='rolling-text' style={{ color: mainColor, fontWeight: 'bold' }}>
+              {availableBudget.toLocaleString()}원 사용가능
+            </p>
+
+            <p className='rolling-text' style={{ color: mainColor, margin: 0, fontWeight: '800' }}>
+              {percent >= 100 
+                ? `🚨 ${overAmount.toLocaleString()}원 초과지출!` 
+                : percent >= 90 
+                ? '예산을 거의 다 썼어요! 지출에 주의하세요.' 
+                : percent >= 70 
+                ? '지출이 늘어나고 있어요. 확인이 필요합니다.' 
+                : '아주 잘하고 계시네요! 계획적인 소비 중입니다.'}
+            </p>
+
+            <p className='rolling-text' style={{ color: mainColor, fontWeight: 'bold' }}>
+              {availableBudget.toLocaleString()}원 사용가능
+            </p>
+          
+          </div>
+        </div>
       </div>
+      
     </div>
   );
 }
