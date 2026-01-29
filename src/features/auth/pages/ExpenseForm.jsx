@@ -404,7 +404,11 @@ const ExpenseForm = ({ mode = 'personal', groupId, groupStart, groupEnd }) => {
                   <div className="member-list-grid">
                     {memList.length > 0 ? memList.map((mem) => (
                       <label key={mem.userId} className="member-item-label">
-                        <input type="checkbox" checked={selectedMemList.some(m => m.userId === member.userId)} onChange={() => handleMemberToggle(mem)} />
+                        <input 
+                          type="checkbox" 
+                          checked={selectedMemList.some(m => m.userId === mem.userId)}
+                          onChange={() => handleMemberToggle(mem)} 
+                        />
                         <span className="member-nickname">{mem.nickName}</span>
                       </label>
                     )) : <p className="no-member-text">그룹에 다른 멤버가 없습니다.</p>}
