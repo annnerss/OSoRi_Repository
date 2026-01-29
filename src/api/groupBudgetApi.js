@@ -3,11 +3,16 @@ import api from "./axios";
 export const groupBudgetApi={
     //그룹가계부 목록 불러오기
     groupBudgetList: async(userId)=>{
-        console.log("userId ",userId);
         const response = await api.get(`/group/gbList`,{
             params:{userId}
         });
-        console.log("response ",response);
+        return response.data;
+    },
+    //이전 그룹 가계부 생성
+    oldGroupBudgetList:async(userId)=>{
+        const response = await api.get(`/group/gbOldList`,{
+            params:{userId}
+        });
         return response.data;
     },
     //그룹가계부 새로 생성
@@ -15,34 +20,60 @@ export const groupBudgetApi={
         const response = await api.post('/group/gbAdd',groupBudget);
         return response.data;
     },
-    //회원 리스트 불러오기
+    //회원 목록 불러오기
     searchMem:async(keyword)=>{
         const response = await api.get('/group/searchMem',{
             params:{keyword:keyword}
         });
         return response.data;
     },
+    //그룹 가계부 멤버 추가
     addMemList:async(user)=>{
         const response = await api.post('/group/gbAddMem',user);
-        console.log(response);
         return response.data;
     },
+    //초대 상태 변경
     updateNotiStatus:async(params)=>{
-        console.log(params);
         const response = await api.post('/group/gbInviteNoti',params);
         return response.data;
     },
+    //안읽은 알림 목록 불러오기
     notiList:async(loginId)=>{
         const response = await api.get('/group/gbNotiList',{
             params:{loginId}
         });
         return response.data;
     },
+    //알림 읽음 처리
     updateNotiIsRead:async(readNotiId)=>{
         const response = await api.put('/group/gbIsRead',null,{
             params:{notiId: readNotiId}
         });
-        console.log(response);
+        return response.data;
+    },
+    //그룹가계부 관리자 확인
+    checkAdmin:async(groupbId)=>{
+        const response = await api.get(`/group/gbCheckAdmin`,{
+            params:{groupbId}
+        });
+        return response.data;
+    },
+    //그룹가계부 수정
+    updateGroupB:async(gb)=>{
+        const response = await api.post('/group/gbUpdate',gb);
+        return response.data;
+    },
+    //그룹가계부 삭제
+    deleteGroupB:async(groupbId)=>{
+        const response= await api.post(`/group/gbDelete?groupbId=${groupbId}`);
+        return response.data;
+    },
+    groupChallList:async()=>{
+        const response = await api.get('/group/gbChallList');
+        return response.data;
+    },
+    addGroupChallList:async(chall)=>{
+        const response = await api.post('/group/gbAddChall',chall);
         return response.data;
     }
     
