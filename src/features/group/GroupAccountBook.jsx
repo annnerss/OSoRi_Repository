@@ -17,12 +17,18 @@ const INCOME_CATEGORIES = [
   "월급", "용돈", "금융소득", "상여금", "기타"
 ];
 
-const TransactionModal = ({ isOpen, type, transaction, onClose, onSave, onDelete }) => {
+const TransactionModal = ({ isOpen, type, transaction, onClose, onSave, onDelete, groupInfo }) => {
     const [currentCategories, setCurrentCategories] = useState(EXPENSE_CATEGORIES);
     
     const [formData, setFormData] = useState({
         text: '', amount: 0, date: '', category: '기타', memo: '', type: 'OUT'
     });
+
+    const today = new Date().toISOString().split('T')[0];
+
+    const maxDate = (groupInfo?.endDate && groupInfo.endDate < today) 
+                    ? groupInfo.endDate 
+                    : today;
 
     useEffect(() => {
         if (transaction) {
@@ -46,6 +52,24 @@ const TransactionModal = ({ isOpen, type, transaction, onClose, onSave, onDelete
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleDateBlur = (e) => {
+        const val = e.target.value;
+        if (!val) return;
+
+        if (groupInfo?.startDate && val < groupInfo.startDate) {
+            alert(`그룹 시작일(${groupInfo.startDate}) 이전은 등록할 수 없습니다.`);
+            setFormData(prev => ({ ...prev, date: groupInfo.startDate }));
+        } 
+
+        else if (val > maxDate) {
+            const msg = maxDate === today 
+                        ? "미래 날짜는 등록할 수 없습니다." 
+                        : `그룹 종료일(${maxDate}) 이후는 등록할 수 없습니다.`;
+            alert(msg);
+            setFormData(prev => ({ ...prev, date: maxDate }));
+        }
     };
 
     const handleTypeChange = (e) => {
@@ -87,7 +111,8 @@ const TransactionModal = ({ isOpen, type, transaction, onClose, onSave, onDelete
                         <div className="modal-form" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                             <div style={{ maxWidth: '200px' }}>
                                 <label className="modal-label">날짜</label>
-                                <input type="date" name="date" value={formData.date} className="modal-input" readOnly={isViewMode} disabled={isViewMode} onChange={handleChange} />
+                                <input type="date" name="date" value={formData.date} className="modal-input" readOnly={isViewMode} disabled={isViewMode} 
+                                       onChange={handleChange} onBlur={handleDateBlur} min={groupInfo?.startDate}  max={maxDate}/>
                             </div>
                             <div>
                                 <label className="modal-label">내용</label>
@@ -105,7 +130,7 @@ const TransactionModal = ({ isOpen, type, transaction, onClose, onSave, onDelete
                             </div>
                             <div style={{ gridColumn: 'span 2' }}>
                                 <label className="modal-label">메모</label>
-                                <input type="text" name="memo" value={formData.memo} className="modal-input" readOnly={isViewMode} onChange={handleChange} placeholder="메모를 입력하세요" />
+                                <input type="text" name="memo" value={formData.memo} className="modal-input" readOnly={isViewMode} onChange={handleChange} placeholder={isViewMode ? "" : "메모를 입력하세요"} />
                             </div>
                         </div>
                     </>
@@ -295,7 +320,8 @@ function GroupAccountBook() {
                         type: item.type || item.TYPE,
                         category: item.category || item.CATEGORY || '기타',
                         memo: item.memo || item.MEMO || '',
-                        nickname: item.nickname || item.NICKNAME || '' 
+                        nickname: item.nickname || item.NICKNAME || '',
+                        groupbId : currentGroupId
                     };
                 });
                 setTransactions(mappedData);
@@ -525,77 +551,135 @@ function GroupAccountBook() {
                             checked={showExpense} 
                             onChange={handleExpenseToggle} 
                         />
-                        <span className="label-text expense">지출</span>
-                    </label>
-                </div>
-                
-                <input 
-                    type="text" 
-                    className="search-input" 
-                    placeholder="내역 검색" 
-                    value={searchTerm} 
-                    onChange={(e) => setSearchTerm(e.target.value)} 
-                />
-            </div>
-            <div className="list-header">
-                <h3 className="section-title">거래 내역</h3>
-                <div className="date-filter-wrapper">
-                    <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="date-input" />
-                    <span className="date-separator">~</span>
-                    <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="date-input" />
-                </div>
-            </div>
-            
-            <div className="list-container">
-                {filteredTransactions.length > 0 ? (
-                    filteredTransactions.map((t, index) => (
-                        <div key={t.id || index} className="list-item" onClick={() => openViewModal(t)} style={{cursor: 'pointer'}}>
-                            <div className="item-info">
-                                <span className="item-text">
-                                    {t.text} 
-                                    {t.nickname && <span style={{fontSize:'0.8em', color:'#888', marginLeft:'5px'}}>({t.nickname})</span>}
-                                </span>
-                                <span className="item-date">{t.date}</span>
+
+                        <header className="group-header">
+                            <div className="group-title-area">
+                                <span className="group-emoji">💰</span>
+                                <h1 className="group-name">{groupInfo.title}</h1>
                             </div>
-                            <div className="item-right">
-                                <span className={`item-amount ${t.type?.toUpperCase() === 'IN' ? 'income' : 'expense'}`}>
-                                    {t.type?.toUpperCase() === 'IN' ? '+' : '-'}
-                                    {Math.abs(t.amount).toLocaleString()}원
-                                </span>
-                                <div className="item-actions">
-                                    <button className="action-btn" onClick={(e) => openEditModal(e, t)}>수정</button>
-                                    <button className="action-btn del-btn" onClick={(e) => openDeleteModal(e, t)}>삭제</button>
+                            <div className="group-budget-area">
+                                <span className="budget-label">목표 예산</span>
+                                <div className="budget-value">
+                                    <span className="budget-amount">{groupInfo.budget.toLocaleString()}</span>
+                                    <span className="budget-unit">원</span>
                                 </div>
                             </div>
+                            <div className="group-date-badge">
+                                🗓️ {groupInfo.startDate} ~ {groupInfo.endDate}
+                            </div>
+                        </header>
+
+                    <div className="summary-section">
+                        <div className="summary-card income-card">
+                                <span className="summary-label">총 수입:</span>
+                                <span className="summary-amount">+{totalIncome.toLocaleString()}원</span>
+                            </div>
+                            <div className="summary-card expense-card">
+                                <span className="summary-label">총 지출:</span>
+                                <span className="summary-amount">-{totalExpense.toLocaleString()}원</span>
+                            </div>
                         </div>
-                    ))
-                ) : (
-                    <p className="no-data">표시할 내역이 없습니다.</p>
-                )}
-            </div>
-            <button className="add-btn" onClick={() => navigate(`/mypage/group/${currentGroupId}/expenseForm`)}>새 내역 추가하기</button>
-        </div>
-        <div>
-            {/* <div className={styles['month-selector-container']}>
-                <div className={styles['month-nav-group']}>
-                    <button onClick={handlePrevMonth} className={styles['nav-btn']}>◀</button>
-                    <span style={{ fontWeight: '800', fontSize: '1.2rem' }}>{currentYear}년 {currentMonth}월 분석</span>
-                    <button onClick={handleNextMonth} className={styles['nav-btn']}>▶</button>
+
+                        <div className="search-wrapper">
+                            <div className="filter-group">
+                                <label className="checkbox-label">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={showIncome} 
+                                        onChange={handleIncomeToggle} 
+                                    />
+                                    <span className="label-text income">수입</span>
+                                </label>
+                                <label className="checkbox-label">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={showExpense} 
+                                        onChange={handleExpenseToggle} 
+                                    />
+                                    <span className="label-text expense">지출</span>
+                                </label>
+                            </div>
+                            
+                            <input 
+                                type="text" 
+                                className="search-input" 
+                                placeholder="내역 검색" 
+                                value={searchTerm} 
+                                onChange={(e) => setSearchTerm(e.target.value)} 
+                            />
+                        </div>
+                        <div className="list-header">
+                            <h3 className="section-title">거래 내역</h3>
+                            <div className="date-filter-wrapper">
+                                <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="date-input" />
+                                <span className="date-separator">~</span>
+                                <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="date-input" />
+                            </div>
+                        </div>
+                        
+                        <div className="list-container">
+                            {filteredTransactions.length > 0 ? (
+                                filteredTransactions.map((t, index) => (
+                                    <div key={t.id || index} className="list-item" onClick={() => openViewModal(t)} style={{cursor: 'pointer'}}>
+                                        <div className="item-info">
+                                            <span className="item-text">
+                                                {t.text} 
+                                                {t.nickname && <span style={{fontSize:'0.8em', color:'#888', marginLeft:'5px'}}>({t.nickname})</span>}
+                                            </span>
+                                            <span className="item-date">{t.date}</span>
+                                        </div>
+                                        <div className="item-right">
+                                            <span className={`item-amount ${t.type?.toUpperCase() === 'IN' ? 'income' : 'expense'}`}>
+                                                {t.type?.toUpperCase() === 'IN' ? '+' : '-'}
+                                                {Math.abs(t.amount).toLocaleString()}원
+                                            </span>
+                                            <div className="item-actions">
+                                                <button className="action-btn" onClick={(e) => openEditModal(e, t)}>수정</button>
+                                                <button className="action-btn del-btn" onClick={(e) => openDeleteModal(e, t)}>삭제</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <p className="no-data">표시할 내역이 없습니다.</p>
+                            )}
+                        </div>
+                        <button className="add-btn" onClick={() => navigate(`/mypage/group/${currentGroupId}/expenseForm`)}>새 내역 추가하기</button>
+                    </div>
                 </div>
-            </div> */}
-            <GroupBudgetGauge
-                transactions={transactions} 
-                groupbId={currentGroupId} 
-                monthlyBudget={groupInfo.budget} 
-                currentDate={currentDate}
-            />
-            <MemberChart
-                transactions={transactions} 
-                groupbId={currentGroupId} 
-                currentDate={currentDate}
-            />
-        </div>
-        </>
+
+                <div className='right-side'>
+                    {/* <div className={styles['month-selector-container']}>
+                        <div className={styles['month-nav-group']}>
+                            <button onClick={handlePrevMonth} className={styles['nav-btn']}>◀</button>
+                            <span style={{ fontWeight: '800', fontSize: '1.2rem' }}>{currentYear}년 {currentMonth}월 분석</span>
+                            <button onClick={handleNextMonth} className={styles['nav-btn']}>▶</button>
+                        </div>
+                    </div> */}
+                    <div className='chart-card'>
+                        <div className='chart-main-container'>
+                            <GroupBudgetGauge
+                                transactions={transactions} 
+                                groupbId={currentGroupId} 
+                                monthlyBudget={groupInfo.budget} 
+                                startDate={groupInfo.startDate}
+                                endDate={groupInfo.endDate}
+                            />
+                        </div>
+                    </div>
+                    <div className='chart-card'>
+                        <div className='chart-main-container'>
+                            <MemberChart
+                                transactions={transactions} 
+                                groupbId={currentGroupId} 
+                                startDate={groupInfo.startDate}
+                                endDate={groupInfo.endDate}
+                            />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
     );
 }
 

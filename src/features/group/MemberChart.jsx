@@ -12,23 +12,26 @@ import {
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-function MemberChart({ transactions = [], groupbId, currentDate }) {
-  if (!currentDate || !(currentDate instanceof Date)) return null;
+function MemberChart({ transactions = [], groupbId, startDate, endDate }) {
+  if (!startDate || !endDate) return null;
 
-  const targetYear = currentDate.getFullYear();
-  const targetMonth = String(currentDate.getMonth() + 1).padStart(2, '0');
-  const targetYM = `${targetYear}-${targetMonth}`;
+  const start = new Date(startDate);
+  const end = new Date(endDate);
 
-  const groupExpenses = transactions.filter(t => 
-    (t.groupbId === groupbId || t.ledger_id === groupbId) && 
-    t.type?.toUpperCase() === 'OUT' && 
-    (t.date || t.transDate)?.startsWith(targetYM)
-  );
+  const groupExpenses = transactions.filter(t => {
+    const transDate = new Date(t.date);
+    return (
+      String(t.groupbId) === String(groupbId) && 
+      t.type?.toUpperCase() === 'OUT' && 
+      transDate >= start && 
+      transDate <= end
+    );
+  });
 
   const memberData = groupExpenses.reduce((acc, curr) => {
-    const name = curr.userName || curr.nickName || curr.nickname || '익명';
+    const name = curr.nickname || '익명';
     const cat = curr.category || '기타';
-    const amount = Math.abs(curr.amount || curr.originalAmount || 0);
+    const amount = Math.abs(curr.amount || 0);
 
     if (!acc[name]) acc[name] = {};
     acc[name][cat] = (acc[name][cat] || 0) + amount;
@@ -37,9 +40,8 @@ function MemberChart({ transactions = [], groupbId, currentDate }) {
 
   const members = Object.keys(memberData);
   const VALID_CATEGORIES = ['식비', '생활/마트', '쇼핑', '의료/건강', '교통', '문화/여가', '교육', '기타'];
-  const colors = ['#FF6384', '#4BC0C0', '#FFCE56', '#36A2EB', '#9966FF', '#FF9F40', '#42A5F5', '#C9CBCF'];
+  const colors = ['#FF6384', '#4BC0C0', '#FFCE56', '#36A2EB', '#9966FF', '#FF9F40', '#65be71', '#C9CBCF'];
 
-  // 3. 차트 데이터 구성
   const data = {
     labels: members.length > 0 ? members : ['데이터 없음'],
     datasets: VALID_CATEGORIES.map((cat, idx) => ({
