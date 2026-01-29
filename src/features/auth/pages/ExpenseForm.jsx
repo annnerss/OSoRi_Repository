@@ -401,6 +401,7 @@ const ExpenseForm = ({ mode = 'personal', groupId, groupStart, groupEnd }) => {
               </div>
               {isSplitActive && (
                 <>
+                
                   <div className="member-list-grid">
                     {memList.length > 0 ? memList.map((mem) => (
                       <label key={mem.userId} className="member-item-label">
