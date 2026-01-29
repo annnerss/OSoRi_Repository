@@ -267,7 +267,10 @@
 .logout-btn:hover { color: #ff4d4f; }
 
 .profile-fixed-card {
-  margin-bottom: 30px;
+  display: flex;
+    justify-content: flex-start;
+    width: 100%;
+    margin-bottom: 20px;
 }
 
 .profile-main {
