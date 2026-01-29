@@ -25,6 +25,13 @@ const ExpenseForm = ({ mode = 'personal', groupId }) => {
   const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef(null);
   const [recentItems, setRecentItems] = useState([]);
+  const getToday = () => {
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = ("0" + (date.getMonth() + 1)).slice(-2);
+    const day = ("0" + date.getDate()).slice(-2);
+    return `${year}-${month}-${day}`;
+};
   const [formData, setFormData] = useState({
     type: '지출',
     transDate: '',      
@@ -178,6 +185,7 @@ const ExpenseForm = ({ mode = 'personal', groupId }) => {
       alert("필수 입력 항목을 확인해주세요.");
       return;
     }
+
     try {
       const isIncome = formData.type === '수입';
       const transType = isIncome ? 'IN' : 'OUT';
@@ -270,7 +278,7 @@ const ExpenseForm = ({ mode = 'personal', groupId }) => {
         )}
 
         <form onSubmit={handleSubmit}>
-          <div className="input-group"><label className="input-label">날짜</label><input type="date" name="transDate" className="input-field" value={formData.transDate} onChange={handleChange} required /></div>
+          <div className="input-group"><label className="input-label">날짜</label><input type="date" name="transDate" className="input-field" value={formData.transDate} onChange={handleChange} max={getToday()} required /></div>
           <div className="input-group"><label className="input-label">{formData.type === '수입' ? '입금처 / 내용' : '거래처 / 가게명'}</label><input type="text" name="title" className="input-field" placeholder={formData.type === '수입' ? "예: 회사, 부모님" : "예: 스타벅스, 식당"} value={formData.title} onChange={handleChange} required /></div>
           <div className="input-group"><label className="input-label">금액</label><div className="amount-wrapper"><input type="number" name="originalAmount" className="input-field" placeholder="0" value={formData.originalAmount} onChange={handleChange} required /><span className="currency-unit">원</span></div></div>
           <div className="input-group"><label className="input-label">카테고리</label><select name="category" className="input-field" value={formData.category} onChange={handleChange}>{currentCategories.map((cat, index) => <option key={index} value={cat}>{cat}</option>)}</select></div>
