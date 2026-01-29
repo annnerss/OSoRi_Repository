@@ -1,13 +1,13 @@
 const getWitMessage = (category, amount, limit) => {
   const diff = Math.round(amount - limit);
   const messages = {
-    '식비': [`미슐랭 가이드 찍으러 가셨나요? 🍽️ (평소 대비 +${diff.toLocaleString()}원)`, `혹시 오늘이 생일이신가요? 지갑도 생각해주세요! 🎂`],
-    '쇼핑': [`지름신이 강림하셨군요! 🛍️ (평소 대비 +${diff.toLocaleString()}원)`, `장바구니가 무거우면 지갑은 가벼워집니다...`],
-    '생활/마트': [`장바구니가 꽤 무겁네요 😭 (평소 대비 +${diff.toLocaleString()}원)`],
-    '의료/건강': [`건강이 최고지만, 지갑 건강도 챙겨주세요! 🏥 (평소 대비 +${diff.toLocaleString()}원)`],
-    '교통': [`이번 달은 이동이 정말 많으시네요! 🚗`],
-    '문화/여가': [`인생은 즐겁지만 예산도 즐거워야 해요 🎭`],
-    '기타': [`어디에 쓰셨나요? 예상치 못한 지출이 생겼어요! 🤔`]
+    '식비': [`🍽️ 미슐랭 가이드 찍으러 가셨나요? (평소 대비 ${diff.toLocaleString()}원 ↑)`],
+    '쇼핑': [`🛍️ 지름신이 강림하셨군요! (평소 대비 ${diff.toLocaleString()}원 ↑)`],
+    '생활/마트': [`🛒장바구니가 꽤 무겁네요 (평소 대비 ${diff.toLocaleString()}원 ↑)`],
+    '의료/건강': [`🏥 건강이 최고지만, 지갑 건강도 챙겨주세요! (평소 대비 ${diff.toLocaleString()}원 ↑)`],
+    '교통': [`🚗 이번 달은 이동이 정말 많으시네요! (평소 대비 ${diff.toLocaleString()}원 ↑)`],
+    '문화/여가': [`🎭 인생은 즐겁지만 예산도 즐거워야 해요 (평소 대비 ${diff.toLocaleString()}원 ↑)`],
+    '기타': [`🤔 어디에 쓰셨나요? 예상치 못한 지출이 생겼어요! (평소 대비 ${diff.toLocaleString()}원 ↑)`]
   };
   const categoryMessages = messages[category] || messages['기타'];
   return categoryMessages[Math.floor(Math.random() * categoryMessages.length)];

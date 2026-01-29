@@ -331,117 +331,119 @@ function MyAccountBook() {
     };
 
     return (
-        <div className={styles.card}>
-            <TransactionModal 
-                isOpen={isModalOpen} 
-                type={modalType}
-                transaction={selectedItem}
-                onClose={() => setIsModalOpen(false)}
-                onSave={handleSave}
-                onDelete={handleDelete}
-            />
-            <div className={styles['left-side']}>
-                <div className={styles['list-card']}>
-                    <header><h2 className={styles['header-title']}>💰 나의 가계부</h2></header>
+        <main className="fade-in">
+            <div className={styles.card}>
+                <TransactionModal 
+                    isOpen={isModalOpen} 
+                    type={modalType}
+                    transaction={selectedItem}
+                    onClose={() => setIsModalOpen(false)}
+                    onSave={handleSave}
+                    onDelete={handleDelete}
+                />
+                <div className={styles['left-side']}>
+                    <div className={styles['list-card']}>
+                        <header><h2 className={styles['header-title']}>💰 나의 가계부</h2></header>
 
-                    <div className={styles['search-wrapper']}>
-                        <div className={styles['filter-group']}>
-                            <label className={styles['checkbox-label']}>
-                                <input 
-                                    type="checkbox" 
-                                    checked={showIncome} 
-                                    onChange={handleIncomeToggle} 
-                                />
-                                <span className={`${styles['label-text']} ${styles.income}`}>수입</span>
-                            </label>
-                            <label className={styles['checkbox-label']}>
-                                <input 
-                                    type="checkbox" 
-                                    checked={showExpense} 
-                                    onChange={handleExpenseToggle} 
-                                />
-                                <span className={`${styles['label-text']} ${styles.expense}`}>지출</span>
-                            </label>
+                        <div className={styles['search-wrapper']}>
+                            <div className={styles['filter-group']}>
+                                <label className={styles['checkbox-label']}>
+                                    <input 
+                                        type="checkbox" 
+                                        checked={showIncome} 
+                                        onChange={handleIncomeToggle} 
+                                    />
+                                    <span className={`${styles['label-text']} ${styles.income}`}>수입</span>
+                                </label>
+                                <label className={styles['checkbox-label']}>
+                                    <input 
+                                        type="checkbox" 
+                                        checked={showExpense} 
+                                        onChange={handleExpenseToggle} 
+                                    />
+                                    <span className={`${styles['label-text']} ${styles.expense}`}>지출</span>
+                                </label>
+                            </div>
+                            
+                            <input 
+                                type="text" 
+                                className={styles['search-input']} 
+                                placeholder="내역 검색" 
+                                value={searchTerm} 
+                                onChange={(e) => setSearchTerm(e.target.value)} 
+                            />
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                            <h3 style={{ fontSize: '1.1rem', fontWeight: '700' }}>거래 내역</h3>
+                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} style={{ padding: '4px', borderRadius: '4px', border: '1px solid #ddd' }} />
+                                <span>~</span>
+                                <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} style={{ padding: '4px', borderRadius: '4px', border: '1px solid #ddd' }} />
+                            </div>
                         </div>
                         
-                        <input 
-                            type="text" 
-                            className={styles['search-input']} 
-                            placeholder="내역 검색" 
-                            value={searchTerm} 
-                            onChange={(e) => setSearchTerm(e.target.value)} 
-                        />
-                    </div>
+                        <div style={{ flex: 1, overflowY: 'auto', borderTop: '2px solid #2d3436' }}>
+                            {filteredTransactions.length > 0 ? (
+                                filteredTransactions.map((t, index) => (
+                                    <div 
+                                        key={t.id || index} 
+                                        className={styles['list-item']} 
+                                        onClick={() => openViewModal(t)} 
+                                        style={{ 
+                                            display: 'flex', justifyContent: 'space-between', padding: '15px 0', borderBottom: '1px solid #eee', cursor: 'pointer' 
+                                        }} 
+                                    >
+                                        <div>
+                                            <span className={styles['item-text']}>{t.text}</span>
+                                            <span className={styles['item-date']}>{t.date}</span>
+                                        </div>
+                                        
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                                            <span className={`${styles['item-amount']} ${t.type?.toUpperCase() === 'IN' ? styles.income : styles.expense}`}>
+                                                {t.type?.toUpperCase() === 'IN' ? '+' : '-'}
+                                                {Math.abs(t.amount).toLocaleString()}원
+                                            </span>
 
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                        <h3 style={{ fontSize: '1.1rem', fontWeight: '700' }}>거래 내역</h3>
-                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                            <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} style={{ padding: '4px', borderRadius: '4px', border: '1px solid #ddd' }} />
-                            <span>~</span>
-                            <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} style={{ padding: '4px', borderRadius: '4px', border: '1px solid #ddd' }} />
-                        </div>
-                    </div>
-                    
-                    <div style={{ flex: 1, overflowY: 'auto', borderTop: '2px solid #2d3436' }}>
-                        {filteredTransactions.length > 0 ? (
-                            filteredTransactions.map((t, index) => (
-                                <div 
-                                    key={t.id || index} 
-                                    className={styles['list-item']} 
-                                    onClick={() => openViewModal(t)} 
-                                    style={{ 
-                                        display: 'flex', justifyContent: 'space-between', padding: '15px 0', borderBottom: '1px solid #eee', cursor: 'pointer' 
-                                    }} 
-                                >
-                                    <div>
-                                        <span className={styles['item-text']}>{t.text}</span>
-                                        <span className={styles['item-date']}>{t.date}</span>
-                                    </div>
-                                    
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                                        <span className={`${styles['item-amount']} ${t.type?.toUpperCase() === 'IN' ? styles.income : styles.expense}`}>
-                                            {t.type?.toUpperCase() === 'IN' ? '+' : '-'}
-                                            {Math.abs(t.amount).toLocaleString()}원
-                                        </span>
-
-                                        <div className={styles['item-actions']}>
-                                            <button className={styles['action-btn']} onClick={(e) => openEditModal(e, t)}>수정</button>
-                                            <button className={`${styles['action-btn']} ${styles['del-btn']}`} onClick={(e) => openDeleteModal(e, t)}>삭제</button>
+                                            <div className={styles['item-actions']}>
+                                                <button className={styles['action-btn']} onClick={(e) => openEditModal(e, t)}>수정</button>
+                                                <button className={`${styles['action-btn']} ${styles['del-btn']}`} onClick={(e) => openDeleteModal(e, t)}>삭제</button>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))
-                        ) : (
-                            <p style={{ textAlign: 'center', color: '#999', padding: '40px 0' }}>표시할 내역이 없습니다.</p>
-                        )}
+                                ))
+                            ) : (
+                                <p style={{ textAlign: 'center', color: '#999', padding: '40px 0' }}>표시할 내역이 없습니다.</p>
+                            )}
+                        </div>
                     </div>
+                    <button className={styles['add-btn']} onClick={() => navigate('/mypage/expenseForm')}>새 내역 추가하기</button>
                 </div>
-                <button className={styles['add-btn']} onClick={() => navigate('/mypage/expenseForm')}>새 내역 추가하기</button>
+
+                <div className={styles['right-side']}>
+                
+                    <div className={styles['month-selector-container']}>
+                        <div className={styles['month-nav-group']}>
+                            <button onClick={handlePrevMonth} className={styles['nav-btn']}>◀</button>
+                            <span style={{ fontWeight: '800', fontSize: '1.2rem' }}>{currentYear}년 {currentMonth}월 분석</span>
+                            <button onClick={handleNextMonth} className={styles['nav-btn']}>▶</button>
+                        </div>
+                    </div>
+                    <div className={styles['chart-card']}>
+                        <div className={styles['chart-main-container']}>
+                            <ExpenseChart transactions={transactions} currentDate={currentDate} />
+                        </div>
+                    </div>
+
+                    <div className={styles['chart-card']}>
+                        <div className={styles['chart-main-container']}>
+                            <MonthlyTrendChart transactions={transactions} currentDate={currentDate} />
+                        </div>
+                    </div>
+
+                </div>
             </div>
-
-            <div className={styles['right-side']}>
-            
-                <div className={styles['month-selector-container']}>
-                    <div className={styles['month-nav-group']}>
-                        <button onClick={handlePrevMonth} className={styles['nav-btn']}>◀</button>
-                        <span style={{ fontWeight: '800', fontSize: '1.2rem' }}>{currentYear}년 {currentMonth}월 분석</span>
-                        <button onClick={handleNextMonth} className={styles['nav-btn']}>▶</button>
-                    </div>
-                </div>
-                <div className={styles['chart-card']}>
-                    <div className={styles['chart-main-container']}>
-                        <ExpenseChart transactions={transactions} currentDate={currentDate} />
-                    </div>
-                </div>
-
-                <div className={styles['chart-card']}>
-                    <div className={styles['chart-main-container']}>
-                        <MonthlyTrendChart transactions={transactions} currentDate={currentDate} />
-                    </div>
-                </div>
-
-            </div>
-        </div>
+        </main>
     );
 }
 
