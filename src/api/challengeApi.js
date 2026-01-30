@@ -20,5 +20,15 @@ export const challengeApi = {
       body: { userId, challengeId, startDate, endDate },
   }),
 
+  //그룹챌린지
+  myGroupList: (groupbId) => 
+    apiFetch(`/mychallenges/group?groupbId=${groupbId}`),
+
+  joinGroup: ({ userId, groupbId, challengeId, startDate, endDate } = {}) =>
+    apiFetch(`/mychallenges/group`, {
+      method: "POST",
+      body: { userId, groupbId, challengeId, startDate, endDate },
+    }),
+
 };
 
