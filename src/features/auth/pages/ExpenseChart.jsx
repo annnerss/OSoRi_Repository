@@ -35,7 +35,7 @@ function ExpenseChart({ transactions = [], currentDate }) {
       {
         data: dataValues,
         backgroundColor: [
-          '#FF6384', '#4BC0C0', '#FFCE56', '#36A2EB', '#9966FF', '#FF9F40', '#42A5F5', '#C9CBCF'
+          '#FF6384', '#4BC0C0', '#FFCE56', '#36A2EB', '#9966FF', '#FF9F40', '#65be71', '#C9CBCF'
         ],
         borderWidth: 1,
       },

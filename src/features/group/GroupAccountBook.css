@@ -1,10 +1,14 @@
 :root {
-  --primary-color: #00008B;
+  --primary-color: #0066ff;
   --income-color: #2ecc71;
   --expense-color: #e74c3c;
   --bg-color: #f8f9fa;
   --text-main: #333333;
   --text-sub: #888888;
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
 }
 
 .card {
@@ -14,14 +18,40 @@
   padding: 30px;
   height: calc(100vh - 120px); 
   width: 100%;
-  max-width: 800px;
-  margin: 0 auto;
+  margin: 0px;
   box-sizing: border-box;
   text-align: center;
   font-family: 'Pretendard', -apple-system, sans-serif;
   display: flex;
   flex-direction: column;
 }
+
+/* 가장 바깥쪽 컨테이너 */
+.group {
+  display: flex;
+  width: 100%;
+  gap: 20px; /* 좌우 섹션 사이의 간격 */
+  align-items: flex-start; /* 내용 길이에 상관없이 상단 정렬 */
+  padding: 20px;
+  box-sizing: border-box;
+  align-items: stretch;
+}
+
+/* 왼쪽 섹션 (60%) */
+.left-side {
+  flex: 6; 
+  min-width: 0; /* 내부 요소가 너비를 뚫고 나가는 현상 방지 */
+}
+
+/* 오른쪽 섹션 (40%) */
+.right-side {
+  flex: 4;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
 
 .header-title {
   margin-bottom: 25px;
@@ -237,20 +267,24 @@
 
 .modal-overlay {
   position: fixed;
-  top: 0; left: 0; width: 100%; height: 100%;
+  top: 0; left: 0; 
+  width: 100%; 
+  height: 100%;
   background: rgba(15, 23, 42, 0.5);
   backdrop-filter: blur(12px);
-  display: flex; justify-content: center; align-items: center;
+  display: flex; 
+  justify-content: center; 
+  align-items: center;
   z-index: 2000;
 }
 
 .modal-content {
   background: white;
-  padding: 25px;
-  border-radius: 16px;
-  width: 90%;
-  max-width: 350px; 
-  box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+  padding: 45px;
+  border-radius: 35px;
+  width: 95%;
+  max-width: 650px; 
+  box-shadow: 0 25px 60px rgba(0,0,0,0.2);
   text-align: left;
 }
 
@@ -263,6 +297,8 @@
 }
 
 .modal-btn {
+    padding: 12px 24px;
+    border-Radius: 12px;
     font-size: 0.9rem !important;
 }
 
@@ -294,7 +330,7 @@
 
 .modal-actions {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   gap: 8px;
   margin-top: 25px;
 }
@@ -430,3 +466,83 @@
 
 .income-card .summary-amount { color: #2ecc71; }
 .expense-card .summary-amount { color: #e74c3c; }
+
+/*차트 관련 css*/
+.chart-main-container{
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.chart-card {
+  flex: 1;
+  /* ✅ max-height를 제거하거나 충분히 크게 설정하여 내부 요소가 잘리지 않게 함 */
+  max-height: none; 
+  min-height: 400px; /* 100% 배율에서 요소들이 겹치지 않는 최소 높이 확보 */
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  padding: 25px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+.info-card {
+  flex: 1; /* ✅ 카드 내부 내용물도 높이를 꽉 채우도록 설정 */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* 내용물 사이 간격 균등 분배 */
+  height: 100%; /* 부모 높이 상속 */
+}
+
+
+/* 컨테이너 높이를 충분히 확보 */
+.rolling-container {
+  height: 40px; 
+  overflow: hidden;
+  margin-top: 10px;
+}
+
+.rolling-wrapper {
+  padding: 0 0 0 15px;
+  display: flex;
+  flex-direction: column;
+  /* cubic-bezier를 넣어주면 훨씬 쫀득하게 올라갑니다 */
+  animation: slideUpInfinite 6s cubic-bezier(0.65, 0, 0.35, 1) infinite; 
+}
+
+.rolling-text {
+  height: 40px;      /* 높이를 26px -> 40px로 변경 */
+  line-height: 40px; /* 세로 중앙 정렬 */
+  margin: 0;
+  font-size: 20px; /* 글자 크기도 조금 더 키워볼까요? */
+  color: #888;
+  white-space: nowrap;
+}
+
+@keyframes slideUpInfinite {
+  /* 0~30%: 1번 아이템 정지 */
+  0%, 30% { transform: translateY(0); }
+  
+  /* 30~35%: 1번 -> 2번으로 이동 (이동거리가 40px로 늘어나서 더 많이 움직입니다) */
+  35%, 65% { transform: translateY(-40px); }
+  
+  /* 65~70%: 2번 -> 3번(복사본)으로 이동 */
+  70%, 95% { transform: translateY(-80px); }
+  
+  /* 마지막 순간 복귀 */
+  100% { transform: translateY(-80px); } 
+}
+
+
+/* 모바일 대응 (화면이 좁아지면 위아래로 배치) */
+@media (max-width: 768px) {
+  .card {
+    flex-direction: column;
+  }
+  .left-side, .right-side {
+    flex: none;
+    width: 100%;
+  }
+}
