@@ -82,6 +82,26 @@
 
 .challenge-list-item.group {
   border-left: 6px solid #10b981;
+
+  /*
+    ✅ IMPORTANT
+    프로젝트 다른 화면(GroupAccountBook.css 등)에 `.group` 전역 클래스가 있어서
+    ChallengePage의 "group" 클래스와 충돌할 수 있음.
+    그때 그룹 챌린지 카드가 height: 100vh 처럼 과하게 커지는 문제가 생김.
+
+    해결: 그룹 챌린지 카드에서 필요한 레이아웃 값을 명시적으로 다시 세팅함.
+    (내용/구조는 그대로, 카드 크기만 개인 챌린지와 동일하게 맞춤)
+  */
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 28px;
+  gap: 18px;
+  width: 100%;
+  height: auto;
+  min-height: 100px;
+  box-sizing: border-box;
 }
 
 .challenge-item-left {
@@ -122,6 +142,7 @@
   color: red;
   margin: 8px 0;
 }
+
 
 
 

@@ -3,6 +3,7 @@ import "./ChallengePage.css";
 import "./MyPage.css";
 import { challengeApi } from "../../../api/challengeApi.js";
 import { useAuth } from "../../../context/AuthContext";
+import { useGroupBudgets } from "../../../hooks/useGroupBudgets.js";
 
 export default function ChallengePage() {
   const { user } = useAuth();
@@ -10,6 +11,12 @@ export default function ChallengePage() {
   const displayName = useMemo(() => {
     return user?.nickName || user?.nickname || user?.userName || user?.loginId || "회원";
   }, [user]);
+
+  const { 
+    groupBudgetList, 
+    isLoading: isGroupLoading, 
+    fetchGroupBudgetList 
+  } = useGroupBudgets(user?.userId);
 
   const [challengeMode, setChallengeMode] = useState("PERSONAL");
   const [list, setList] = useState([]);
