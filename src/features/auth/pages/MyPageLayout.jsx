@@ -51,6 +51,12 @@ const MyPageLayout = () => {
             </NavLink>
           </li>
 
+          <li>
+            <NavLink to="/mypage/challenge" className={({ isActive }) => `menu-item ${isActive ? "active" : ""}`}>
+              <span>🎯</span> 챌린지
+            </NavLink>
+          </li>
+
         </ul>
 
         <button className="logout-btn" onClick={handleLogout}>

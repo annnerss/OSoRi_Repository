@@ -82,8 +82,9 @@ export default function FixedTransPage() {
             </div>
           </div>
 
-          <button className="alarm" onClick={openCreate} style={{ border: "2px solid lightgray" }}>
-            + 고정지출 추가
+          <button type="button" className="ftAddBtn" onClick={openCreate}>
+            <span className="ftAddIcon" aria-hidden="true">＋</span>
+            <span>고정지출 추가</span>
           </button>
         </div>
       </section>
@@ -120,18 +121,10 @@ export default function FixedTransPage() {
                   <div className="ftAmount">{Number(item.amount).toLocaleString()}원</div>
 
                   <div className="ftRowActions">
-                    <button
-                      className="alarm ftAction"
-                      onClick={() => openEdit(item)}
-                      style={{ border: "2px solid lightgray" }}
-                    >
+                    <button type="button" className="ftBtn ftBtnEdit" onClick={() => openEdit(item)}>
                       수정
                     </button>
-                    <button
-                      className="alarm ftAction"
-                      onClick={() => removeOne(item.fixedId)}
-                      style={{ border: "2px solid lightgray" }}
-                    >
+                    <button type="button" className="ftBtn ftBtnDelete" onClick={() => removeOne(item.fixedId)}>
                       삭제
                     </button>
                   </div>
