@@ -41,6 +41,22 @@ const MyPageLayout = () => {
               <span>⚙️</span> 프로필 설정
             </NavLink>
           </li>
+
+          <li>
+            <NavLink
+              to="/mypage/fixedTrans"
+              className={({ isActive }) => `menu-item ${isActive ? "active" : ""}`}
+            >
+              <span>📌</span> 고정지출
+            </NavLink>
+          </li>
+
+          <li>
+            <NavLink to="/mypage/challenge" className={({ isActive }) => `menu-item ${isActive ? "active" : ""}`}>
+              <span>🎯</span> 챌린지
+            </NavLink>
+          </li>
+
         </ul>
 
         <button className="logout-btn" onClick={handleLogout}>

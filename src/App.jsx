@@ -18,7 +18,11 @@ import ResetPasswordPage from "./features/auth/pages/ResetPasswordPage";
 import MyAccountBook from "./features/auth/pages/MyAccountBook";
 import useAlarmSocket from './features/alarm/useAlarmSocket';
 import ExpensePage from './features/auth/pages/ExpensePage';
+import FixedTransPage from "./features/auth/pages/FixedTransPage"; // 추가
 import GroupAccountBook from './features/group/GroupAccountBook';
+import ChallengePage from "./features/auth/pages/ChallengePage";
+
+
 
 function App() {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -79,7 +83,8 @@ function App() {
           <Route path='groupAccountBook' element={<GroupAccountBook/>}/>
           <Route path='expenseForm' element={<ExpensePage/>}/>
           <Route path='group/:groupId/expenseForm' element={<ExpensePage/>}/>
-            
+          <Route path="fixedTrans" element={<FixedTransPage />} />
+          <Route path="challenge" element={<ChallengePage />} />  
         </Route>
       </Routes>
     </Router>

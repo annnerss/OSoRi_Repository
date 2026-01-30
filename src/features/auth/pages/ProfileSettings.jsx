@@ -48,6 +48,12 @@ function ProfileSettings() {
   const [newPassword, setNewPassword] = useState("");
   const [newPasswordConfirm, setNewPasswordConfirm] = useState("");
 
+  // [ADDED] ✅ 현재 비밀번호 입력란 === 새 비밀번호 입력란이면 경고 문구 노출
+  const isSamePw =
+    (currentPassword || "").trim() !== "" &&
+    (newPassword || "").trim() !== "" &&
+    (currentPassword || "").trim() === (newPassword || "").trim();
+
   // ============================
   // [ADDED] ✅ 여기 추가함 (새 비밀번호 일치/불일치 메시지)
   // ============================
@@ -356,6 +362,7 @@ function ProfileSettings() {
       <header className="content-header">
         <h2>프로필 설정</h2>
         <p className="ps-sub">프로필/계정 정보를 수정하고 저장할 수 있습니다.</p>
+
       </header>
 
       <div className="ps-stack">
@@ -490,6 +497,13 @@ function ProfileSettings() {
                       onChange={(e) => setNewPassword(e.target.value)}
                       placeholder="새 비밀번호"
                     />
+
+                    {/* [ADDED] ✅ 현재 비밀번호와 일치하면 새 비밀번호 입력란 아래에만 문구 노출 */}
+                    {isSamePw && (
+                      <div className="ps-field-error">
+                        현재 비밀번호와 일치합니다. 다른 비밀번호로 입력해주세요.
+                      </div>
+                    )}
                   </div>
 
                   <div className="ps-field">
@@ -655,6 +669,7 @@ function ProfileSettings() {
 }
 
 export default ProfileSettings;
+
 
 
 

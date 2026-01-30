@@ -1,0 +1,128 @@
+.challenge-page {
+  width: 100%;
+  padding: 32px 40px;
+}
+
+/* 왼쪽 정렬된 헤더 */
+.challenge-header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 32px;
+}
+
+.challenge-header h2 {
+  font-size: 24px;
+  font-weight: 800;
+  color: #1e293b;
+}
+
+.challenge-header p {
+  font-size: 15px;
+  color: #475569;
+  margin-top: 6px;
+}
+
+/* 탭 버튼 */
+.challenge-tab {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.challenge-tab button {
+  padding: 8px 16px;
+  border-radius: 20px;
+  background-color: #e2e8f0;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  color: #1e293b;
+  transition: all 0.2s ease;
+}
+
+.challenge-tab button.active {
+  background-color: #2563eb;
+  color: white;
+  font-weight: bold;
+}
+
+/* ✅ 챌린지 전체를 감싸는 큰 박스 */
+.challenge-list-wrapper {
+  background-color: #f8fafc;
+  border-radius: 20px;
+  padding: 32px 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+/* 챌린지 리스트 */
+.challenge-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* 챌린지 항목 */
+.challenge-list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 28px;
+  border-radius: 14px;
+  background-color: #ffffff;
+  min-height: 100px;
+  transition: background 0.2s ease;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+.challenge-list-item.personal {
+  border-left: 6px solid #2563eb;
+}
+
+.challenge-list-item.group {
+  border-left: 6px solid #10b981;
+}
+
+.challenge-item-left {
+  display: flex;
+  flex-direction: column;
+}
+
+.challenge-title {
+  font-weight: 700;
+  font-size: 17px;
+  margin-bottom: 8px;
+  color: #111827;
+}
+
+.challenge-info span {
+  margin-right: 12px;
+  font-size: 15px;
+  color: #475569;
+}
+
+.challenge-join-btn {
+  background-color: #2563eb;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.challenge-join-btn:hover {
+  background-color: #1e40af;
+}
+
+.error {
+  color: red;
+  margin: 8px 0;
+}
+
+
+
+
