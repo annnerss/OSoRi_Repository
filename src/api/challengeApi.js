@@ -12,5 +12,13 @@ export const challengeApi = {
     const query = qs.toString();
     return apiFetch(`/mychallenges${query ? `?${query}` : ""}`);
   },
+
+  // 참여하기 (시작일 / 종료일 선택)
+  join: ({ userId, challengeId, startDate, endDate } = {}) =>
+    apiFetch(`/mychallenges`, {
+      method: "POST",
+      body: { userId, challengeId, startDate, endDate },
+  }),
+
 };
 
