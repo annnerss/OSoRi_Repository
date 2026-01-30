@@ -43,9 +43,12 @@ function GroupBudgetGauge({ transactions = [], groupbId, monthlyBudget, startDat
   const today = new Date();
   const diffTime = today - start;
   const elapsedDays = Math.max(1, Math.min(totalDays, Math.ceil(diffTime / (1000 * 60 * 60 * 24))));
-  const percent = monthlyBudget > 0 ? Math.round((currentSpent / monthlyBudget) * 100) : 0;
+  
+  const calculatedPercent = monthlyBudget > 0 ? Math.round((currentSpent / monthlyBudget) * 100) : 0;
+  const percent = Math.min(100, calculatedPercent);
+  
   const availableBudget = (monthlyBudget - currentSpent) > 0 ? monthlyBudget - currentSpent : 0;
-  const overAmount = monthlyBudget-currentSpent
+  const overAmount = currentSpent - monthlyBudget
 
   const getStatusColor = (pct) => {
     if (pct >= 90) return '#ff4d4f';
