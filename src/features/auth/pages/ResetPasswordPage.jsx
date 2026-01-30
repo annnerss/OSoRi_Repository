@@ -89,6 +89,15 @@ export default function ResetPasswordPage() {
           placeholder="새 비밀번호를 한 번 더 입력해 주세요."
           autoComplete="new-password"
         />
+        
+        {newPassword.trim() && confirmNewPassword.trim() && (
+          newPassword.trim() === confirmNewPassword.trim() ? (
+            <div className={styles.ok}>새 비밀번호와 일치합니다.</div>
+          ) : (
+            <div className={styles.error}>새 비밀번호가 일치하지 않습니다. 다시 입력해 주세요.</div>
+          )
+        )}
+
 
         {error && <div className={styles.error}>{error}</div>}
 

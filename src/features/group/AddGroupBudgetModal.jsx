@@ -1,8 +1,7 @@
 import { useNavigate } from 'react-router-dom';
-import {useState,useEffect} from 'react';
+import {useState,useEffect,useRef} from 'react';
 import { groupBudgetApi } from '../../api/groupBudgetApi';
 import './AddGroupBudgetModal.css'
-import { useAuth } from '../../context/AuthContext';
 
 const AddGroupBudgetModal=({userId,onClose,onSuccess})=>{
     const [isLoading,setIsLoading] =useState(false);
@@ -11,6 +10,9 @@ const AddGroupBudgetModal=({userId,onClose,onSuccess})=>{
     const [searchKeyword,setSearchKeyword] = useState('');
     const [memList, setMemList] = useState([]);
     const [selectedMemList, setSelectedMemList] = useState([]);
+    const [groupChallList, setGroupChallList] = useState([]);
+    const [selectedGroupChall, setSelectedGroupChall] =useState([]);
+    const overlayRef = useRef(null);
 
     const [formData,setFormData] = useState({
         title:'',
@@ -27,6 +29,12 @@ const AddGroupBudgetModal=({userId,onClose,onSuccess})=>{
         }));
     };
 
+
+    //모달창 바깥쪽 클릭 이벤트 리스너
+    window.addEventListener('click',(e)=>{
+        e.target == overlayRef.current ? onClose() : false;
+    });
+
     //검색어로 이메일 뽑아오기
     const fetchMemList = async()=>{
         try{
@@ -38,6 +46,21 @@ const AddGroupBudgetModal=({userId,onClose,onSuccess})=>{
             console.error('회원 리스트 목록 조회 실패',error);
         }
     };
+
+    //그룹 챌린지 목록 조회하기
+    const fetchChallList = async() =>{
+        try{
+            const data = await groupBudgetApi.groupChallList();
+            
+            setGroupChallList(data);
+        }catch(error){
+            console.log("그룹 챌린지 목록 조회 실패");
+        }
+    }
+
+    useEffect(()=>{
+        fetchChallList();
+    },[]);
 
     useEffect(()=>{
         const timer = setTimeout(() => {
@@ -67,9 +90,25 @@ const AddGroupBudgetModal=({userId,onClose,onSuccess})=>{
         setMemList([]); 
     }
 
+    //추가 멤버들 핸들러
+    const handleSelectChall=(chall)=>{
+        const isAlreadySelected = selectedGroupChall.some(chal=>chal.challengeId === chall.challengeId);
+
+        if(isAlreadySelected){
+            alert("이미 추가된 챌린지입니다.");
+            return;
+        }
+
+        setSelectedGroupChall(prev => [...prev, chall]);
+    }
+
     //선택 취소 핸들러
     const handleDeleteSelectMem=(delMemId)=>{
         setSelectedMemList(prev=>prev.filter(mem=>mem.userId !== delMemId));
+    }
+
+    const handleDeleteSelectChall=(delChalId)=>{
+        setSelectedGroupChall(prev=>prev.filter(chall=>chall.challengeId !== delChalId));
     }
 
     const handleSubmit=async(e)=>{
@@ -109,7 +148,16 @@ const AddGroupBudgetModal=({userId,onClose,onSuccess})=>{
 
                 await Promise.all(addMemPromise);
 
-                alert("그룹가계부와 멤버 추가에 성공했습니다!");
+                const addChallPromise = selectedGroupChall.map(chall=>{
+                    return groupBudgetApi.addGroupChallList({
+                        challengeId: chall.challengeId,
+                        groupbId: newGroup.groupbId
+                    });
+                });
+
+                await Promise.all(addChallPromise);
+
+                alert("그룹가계부 추가에 성공했습니다!");
                 onSuccess();
                 navigate('/mypage');
             }
@@ -122,63 +170,90 @@ const AddGroupBudgetModal=({userId,onClose,onSuccess})=>{
     }
 
     return(
-        <div className="modalOverlayStyle">
+        <div className="modalOverlayStyle" ref={overlayRef}>
             <div className="modalContentStyle">
                 <h3>새로운 그룹가계부 추가</h3>
                 <form onSubmit={handleSubmit} className="formStyle">
-                    <label htmlFor="title">그룹가계부 이름</label>
-                    <input type="text" id="title" name="title" value={formData.title} onChange={handleChange} placeholder="이름" required/>
-                    
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <input type="checkBox" 
-                               name="isbAmount" 
-                               id="isbAmount" 
-                               checked={isbAmount} 
-                               onChange={(e)=>setIsbAmount(e.target.checked)}/>
-                        <label htmlFor="isbAmount" style={{margin: 0}}>예산 설정하기</label>
-                    </div>
+                    <div className="form-content">
+                        <label htmlFor="title">그룹가계부 이름</label>
+                        <input type="text" id="title" name="title" value={formData.title} onChange={handleChange} placeholder="이름" required/> 가계부
+                        
+                        <div className='checkbox-group'>
+                            <input type="checkBox" 
+                                name="isbAmount" 
+                                id="isbAmount" 
+                                checked={isbAmount} 
+                                onChange={(e)=>setIsbAmount(e.target.checked)}/>
+                            <label htmlFor="isbAmount" style={{margin: 0}}>예산 설정하기</label>
+                        </div>
 
-                    <input type="number" 
-                           placeholder="예산 금액 설정" 
-                           name="bAmount" 
-                           value={formData.bAmount} 
-                           onChange={handleChange} 
-                           disabled={!isbAmount}
-                           style={{ backgroundColor: !isbAmount ? '#f5f5f5' : 'white' }}
-                    />
-                    
-                    <label htmlFor="startDate">시작일</label>
-                    <input type="date" id="startDate" required name="startDate" value={formData.startDate} onChange={handleChange} />
-                    <label htmlFor="endDate">종료일</label>
-                    <input type="date" id="endDate" required name="endDate" value={formData.endDate} onChange={handleChange} />
+                        <input type="number" 
+                            placeholder="예산 금액 설정" 
+                            name="bAmount" 
+                            value={formData.bAmount} 
+                            onChange={handleChange} 
+                            disabled={!isbAmount}
+                            style={{ backgroundColor: !isbAmount ? '#f5f5f5' : 'white' }}
+                        />
+                        
+                        <label htmlFor="startDate">시작일</label>
+                        <input type="date" id="startDate" required name="startDate" value={formData.startDate} onChange={handleChange} />
+                        <label htmlFor="endDate">종료일</label>
+                        <input type="date" id="endDate" required name="endDate" value={formData.endDate} onChange={handleChange} />
 
-                    <label htmlFor="memList">회원 추가</label>
-                    <input type="text" 
-                           name="search" 
-                           placeholder='검색할 이메일을 입력해주세요.' 
-                           value={searchKeyword} 
-                           onChange={(e)=>setSearchKeyword(e.target.value)}>
-                    </input>
-                    {memList.length > 0 && (
-                        <ul>
-                            {memList.map((mem)=>(
-                                <li key={mem.userId} style={{cursor:"pointer"}} onClick={()=>handleSelectMember(mem)}>
-                                    {mem.email} ({mem.loginId}) <span>[추가]</span>
-                                </li>
+                        <label htmlFor="memList">회원 추가</label>
+                        <input type="text" 
+                            name="search" 
+                            placeholder='검색할 이메일을 입력해주세요.' 
+                            value={searchKeyword} 
+                            onChange={(e)=>setSearchKeyword(e.target.value)}>
+                        </input>
+                        {memList.length > 0 && (
+                            <ul className="mem-list">
+                                {memList.map((mem)=>(
+                                    <li key={mem.userId} style={{cursor:"pointer"}} onClick={()=>handleSelectMember(mem)}>
+                                        {mem.email} ({mem.nickName}) <span>[추가]</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+
+                        <div className="selected-members">
+                            <label>선택된 멤버:</label>
+                            {selectedMemList.map((mem) => (
+                                <span key={mem.userId} className="member-badge">
+                                    {mem.nickName} 
+                                    <button onClick={() => handleDeleteSelectMem(mem.userId)}>x</button>
+                                </span>
                             ))}
+                        </div>
+
+                        <label htmlFor="groupChall">그룹가계부 챌린지</label>
+                        <ul className="challenge-list">
+                            {groupChallList.length === 0 ? (
+                                <li className="no-challenge">
+                                    현재 진행중인 챌린지가 없습니다.
+                                </li>
+                            ) : (
+                                groupChallList.map((chall) => (
+                                    <li key={chall.challengeId} onClick={()=>handleSelectChall(chall)}>
+                                        {chall.description}
+                                    </li>
+                                ))
+                            )}
                         </ul>
-                    )}
 
-                    <div className="selected-members">
-                        <h4>선택된 멤버:</h4>
-                        {selectedMemList.map((mem) => (
-                            <span key={mem.userId} className="member-badge">
-                                {mem.loginId} 
-                                <button onClick={() => handleDeleteSelectMem(mem.userId)}>x</button>
-                            </span>
-                        ))}
+                        <div className="selected-chall">
+                            <label>선택된 챌린지:</label>
+                            {selectedGroupChall.map((chall) => (
+                                <span  className="chall-badge">
+                                    {chall.challengeId}
+                                    <button onClick={() => handleDeleteSelectChall(chall.challengeId)}>x</button>
+                                </span>
+                            ))}
+                        </div>
+
                     </div>
-
                     <div className="buttonGroup">
                         <button type="submit">저장</button>
                         <button type="button" onClick={onClose}>취소</button>

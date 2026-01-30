@@ -12,7 +12,7 @@ const useAlarmSocket = (userId) => {
         const client = new Client({
             webSocketFactory: () => new SockJS("http://localhost:8080/osori/ws"),
             onConnect: () => {
-                console.log("소켓 연결 성공");
+                //console.log("소켓 연결 성공");
                 
                 // 서버의 convertAndSendToUser에 대응하는 구독 경로
                 client.subscribe(`/single/notifications/${userId}`, (message) => {

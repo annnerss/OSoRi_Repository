@@ -17,7 +17,7 @@
     background-color: white;
     padding: 30px;
     border-radius: 20px; /* 이미지의 둥근 모서리 */
-    width: 400px;
+    width: 600px;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05); /* 부드러운 그림자 */
     border: 1px solid #f0f0f0;
 }
@@ -35,38 +35,85 @@
     display: flex;
     flex-direction: column;
     gap: 15px;
+    max-height: 700px;
+    width: 100%;
+    overflow: hidden;
+    padding: 10px;
+    box-sizing: border-box;
 }
 
-.formStyle label {
-    font-size: 0.85rem;
-    color: #666;
-    margin-bottom: -10px;
-    margin-left: 5px;
+.form-content {
+    flex: 1; 
+    overflow-y: auto; 
+    padding: 0 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.form-content::-webkit-scrollbar {
+    width: 6px;
+}
+.form-content::-webkit-scrollbar-thumb {
+    background-color: #ccc;
+    border-radius: 10px;
+}
+
+.buttonGroup {
+    display: flex;
+    gap: 10px;
+    padding-top: 20px;
+    background-color: white;
+    border-top: 1px solid #eee;
+}
+
+.formStyle ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
 }
 
 /* 입력창 디자인: 이미지의 깔끔한 느낌 */
 .formStyle input,
 .formStyle input[type="number"],
 .formStyle input[type="date"] {
-    padding: 12px;
-    border: 1px solid #e0e0e0;
-    border-radius: 10px;
-    font-size: 0.95rem;
-    outline: none;
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-sizing: border-box;
     transition: border 0.2s;
 }
 
+.formStyle > label{
+    text-align: left;
+    font-weight: bold;
+    color: black;
+    display: block;
+    white-space: nowrap;
+    margin-bottom: -5px;
+    text-align: center;
+}
+
 .formStyle input:focus {
-    border-color: #f8bbd0; /* 포인트 컬러 (필요시 수정) */
+    border-color: #f8bbd0;
 }
 
 /* 체크박스 라인 */
-.formStyle div:has(input[type="checkBox"]) {
-    display: flex;
+.checkbox-group input[type="checkBox"] {
+    width: 16px;    
+    height: 16px;
+    margin: 0 10px;       
+    cursor: pointer;
+}
+
+.checkbox-group {
+    justify-content: flex-start;
     align-items: center;
-    gap: 10px;
-    font-size: 0.9rem;
-    color: #444;
+    width: 100%;
+    gap: 8px; 
+    white-space: nowrap;
 }
 
 /* 하단 버튼 정렬 */
@@ -87,15 +134,76 @@
 }
 
 .formStyle button[type="submit"] {
-    background-color: #333; /* 다크 톤 */
+    background-color: #0066ff;
     color: white;
 }
 
 .formStyle button[type="button"] {
-    background-color: #f0f0f0; /* 연한 회색 */
-    color: #666;
+    background-color: #e74c3c;
+    color: white;
 }
 
 .formStyle button:hover {
     opacity: 0.8;
+}
+
+.selected-members, .selected-chall {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.selected-members label{
+    margin: 0;
+}
+
+.member-badge, .chall-badge {
+    display: inline-flex;
+    align-items: center;
+    background-color: #e3f2fd;
+    color: #1976d2;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    height: 25px;
+}
+
+.member-badge button, .chall-badge button{
+    background: none;
+    border: none;
+    color: #1976d2;
+    margin-left: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    padding: 0 2px;
+}
+
+.challenge-list, .mem-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    text-align: left;
+}
+
+.challenge-list li, .mem-list li{
+    padding: 4px 0; 
+    cursor: pointer;
+}
+
+.selected-members label,
+.selected-chall label,
+.challenge-list li,
+.mem-list li,
+.no-challenge {
+    font-size: 14px;
+    color: #666;
+    display: block;
+}
+
+.no-challenge {
+    color: #999; 
+    padding-left: 2px;
 }

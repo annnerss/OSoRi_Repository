@@ -7,6 +7,7 @@ import AddGroupBudgetModal from "../../group/AddGroupBudgetModal";
 import useAlarmSocket from "../../alarm/useAlarmSocket";
 import ZScoreNotification from "../../Util/ZScoreNotification";
 import transApi from "../../../api/transApi";
+import OldGroupBudgetModal from "../../group/OldGroupBudgetModal";
 
 const MyPage = () => {
   const { user } = useAuth();
@@ -16,11 +17,11 @@ const MyPage = () => {
   const email = user?.email || "";
 
   const [groupBudgetList,setGroupBudgetList] =useState([]);
-  const [isLoading,setIsLoading] = useState(true);
-  const [isModalOpen,setIsModalOpen] =useState(false);
+  const [isLoading,setIsLoading] = useState(true); 
+  const [isModalOpen,setIsModalOpen] =useState(false); //새로운 그룹가계부 생성 모달
+  const [isModalOpen2, setIsModalOpen2] = useState(false); //이전 가계부 목록 모달
   const [currentDate, setCurrentDate] = useState(new Date());
   const [transactions, setTransactions] = useState([]);
-  
   const { notifications, setNotifications } = useAlarmSocket(user?.loginId);
   const [isNotiOpen, setIsNotiOpen] = useState(false);
 
@@ -39,7 +40,7 @@ const MyPage = () => {
       }finally{
         setIsLoading(false);
       }
-    }
+  }
 
   //안읽은 알림 목록 조회
   const fetchNotiList = async(loginId)=>{
@@ -249,13 +250,21 @@ const MyPage = () => {
                 ))
               }
             </ul>
-            <button 
-                onClick={() => setIsModalOpen(true)}
-                className="menu-item"
-                style={{display:"block", marginTop:"20px", textAlign:"center"}}
-            >
-             새로운 가계부 만들기
-            </button>
+            <div className="buttons-wrapper">
+              <button 
+                  onClick={() => setIsModalOpen(true)}
+                  className="menu-item btn"
+              >
+              새로운 가계부 만들기
+              </button>
+              <button 
+                  onClick={() => setIsModalOpen2(true)}
+                  className="menu-item btn"
+              >
+              이전 가계부
+              </button>
+            </div>
+            
 
             {isModalOpen && (
               <AddGroupBudgetModal 
@@ -264,6 +273,16 @@ const MyPage = () => {
                 onSuccess={() => {
                   setIsModalOpen(false);
                   fetchGroupBudgetList(); //목록 새로고침
+                }}
+              />
+            )}
+
+            {isModalOpen2 && (
+              <OldGroupBudgetModal 
+                userId={user?.userId} 
+                onClose={() => setIsModalOpen2(false)} 
+                onSuccess={() => {
+                  setIsModalOpen2(false);
                 }}
               />
             )}
