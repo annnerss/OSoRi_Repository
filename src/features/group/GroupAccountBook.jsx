@@ -3,8 +3,9 @@ import './GroupAccountBook.css';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import transApi from '../../api/transApi';
-import GroupBudgetGauge from './GroupBudgetGaugeChart'
+import GroupBudgetGauge from './GroupBudgetGaugeChart';
 import MemberChart from './MemberChart';
+import { groupBudgetApi } from '../../api/groupBudgetApi';
 
 const EXPENSE_CATEGORIES = [
   "식비", "생활/마트", "쇼핑", "의료/건강", 
@@ -153,6 +154,118 @@ const TransactionModal = ({ isOpen, type, transaction, onClose, onSave, onDelete
     );
 };
 
+const GroupBudgetUpdateModal = ({ isOpen, onClose, onDelete, groupData, groupId, onUpdate }) => {
+    const [formData, setFormData] = useState({
+        groupbId: groupId,
+        title: '',
+        bAmount: 0
+    });
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+    useEffect(() => {
+        if (groupData) {
+            setFormData({
+                groupbId: groupId,
+                title: groupData.title || '',
+                bAmount: groupData.budget
+            });
+        }
+    }, [groupData]);
+
+    if (!isOpen) return null;
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ 
+            ...prev, 
+            [name]: value 
+        }));
+    };
+
+    const handleSubmit = () => {
+        if (!formData.title.trim()) {
+            alert("가계부 제목을 입력해주세요.");
+            return;
+        }
+        if (formData.bAmount <= 0) {
+            alert("예산은 0보다 커야 합니다.");
+            return;
+        }
+        
+        onUpdate(formData); 
+    };
+
+    return (
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="modal-content" onClick={e => e.stopPropagation()}>
+                <h3 style={{ textAlign: 'center' }}>
+                    ✏️ 그룹 가계부 수정
+                </h3>
+
+                <div className="modal-form" >
+                    <div>
+                        <label className="modal-label">가계부 제목</label>
+                        <input 
+                            type="text" 
+                            name="title" 
+                            value={formData.title} 
+                            className="modal-input" 
+                            onChange={handleChange}
+                        />
+                    </div>
+                    <div>
+                        <label className="modal-label">목표 예산</label>
+                        <input 
+                            type="number" 
+                            name="bAmount" 
+                            value={formData.bAmount} 
+                            className="modal-input" 
+                            onChange={handleChange}
+                        />
+                    </div>
+                </div>
+
+                <div className="modal-actions">
+                    <button 
+                        className="modal-btn confirm" 
+                        onClick={handleSubmit} 
+                    >
+                        수정하기
+                    </button>
+                    <button 
+                        className="modal-btn delete" 
+                        onClick={()=>setIsDeleteModalOpen(true)} 
+                    >
+                        가계부 삭제
+                    </button>
+                    <button 
+                        className="modal-btn cancel" 
+                        onClick={onClose} 
+                    >
+                        뒤로가기
+                    </button>
+                </div>
+                {isDeleteModalOpen && (
+                    <div className="modal-overlay" style={{ background: 'rgba(0,0,0,0.5)', zIndex: 4000 }}>
+                        <div className="modal-content" style={{ textAlign: 'center', maxWidth: '400px' }}>
+                            <h3>🗑️ 가계부 삭제</h3>
+                            <p>
+                                정말로 삭제하시겠습니까?<br/>
+                                <strong>[{groupData?.title}]</strong>가계부의 모든 데이터가 사라집니다.
+                            </p>
+                            <div style={{ display: 'flex', justifyContent: 'center', gap: '12px' }}>
+                                <button className="modal-btn delete" onClick={onDelete}>삭제하기</button>
+                                <button className="modal-btn cancel" onClick={() => setIsDeleteModalOpen(false)} >취소</button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+
 function GroupAccountBook() {
     const [transactions, setTransactions] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
@@ -162,6 +275,8 @@ function GroupAccountBook() {
     const [endDate, setEndDate] = useState('');
 
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+
     const [modalType, setModalType] = useState('view'); 
     const [selectedItem, setSelectedItem] = useState(null);
 
@@ -178,6 +293,7 @@ function GroupAccountBook() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const currentGroupId = searchParams.get('groupId');
+    const [isAdmin, setIsAdmin] = useState(false); //그룹 가계부 아이디 조회용
 
     const fetchTransactions = () => {
         if (!currentGroupId) return; 
@@ -306,14 +422,84 @@ function GroupAccountBook() {
         .filter(t => t.type === 'OUT')
         .reduce((acc, cur) => acc + Number(cur.amount), 0);
 
+    //현재 회원이 해당 그룹 가계부 관리자여야만 수정 가능
+    const checkAdminStatus = async() =>{
+        try{
+            const data = await groupBudgetApi.checkAdmin(currentGroupId);
+            
+            if (data == user?.userId) {
+                setIsAdmin(true);
+            } else {
+                setIsAdmin(false);
+            }
+
+        }catch(error){
+            console.error('그룹 관리자 조회 실패',error);
+            setIsAdmin(false);
+        }
+    }
+
+    useEffect(() => {
+        if (currentGroupId && user?.userId) {
+            checkAdminStatus();
+        }
+    }, [currentGroupId, user?.userId]);
+
+    //수정 실행 함수
+    const handleGbUpdate = async (updateData) => {
+        try {
+            const response = await groupBudgetApi.updateGroupB({
+                groupbId: updateData.groupbId,
+                title: updateData.title,
+                bAmount: updateData.bAmount
+            });
+
+            alert("그룹 가계부 정보가 성공적으로 수정되었습니다!");
+                
+            setIsUpdateModalOpen(false);
+            
+            fetchGroupInfo();
+        } catch (error) {
+            console.error('그룹 가계부 수정 실패:', error);
+            alert("수정 중 오류가 발생했습니다. 다시 시도해 주세요.");
+        }
+    };
+
+    //삭제 실행 함수
+    const handleGbDelete = async()=>{
+        try{
+            const response = await groupBudgetApi.deleteGroupB(currentGroupId);
+
+            console.log(response);
+
+            alert("그룹 가계부 정보가 성공적으로 삭제되었습니다!");
+            
+            setIsUpdateModalOpen(false);
+
+            navigate("/mypage");
+        }catch(error){
+            console.error('그룹 가계부 삭제 실패:', error);
+            alert("삭제 중 오류가 발생했습니다. 다시 시도해 주세요.");
+        }
+    }
+
     return (
         <main className="fade-in">
             <div className='group'>
-                <div className='left-side'>
+                <div className='left-side'></div>
                     <div className="card">
                         <TransactionModal 
                             isOpen={isModalOpen} type={modalType} transaction={selectedItem}
-                            onClose={() => setIsModalOpen(false)} onSave={handleSave} onDelete={handleDelete} groupInfo={groupInfo}
+                            onClose={() => setIsModalOpen(false)} onSave={handleSave} onDelete={handleDelete}
+                        />
+
+                        <GroupBudgetUpdateModal 
+                            isOpen={isUpdateModalOpen}
+                            onClose={() => setIsUpdateModalOpen(false)}
+                            groupData={groupInfo}
+                            groupId={currentGroupId}
+                            onUpdate={handleGbUpdate}
+                            onDelete={handleGbDelete}  
                         />
 
                         <header className="group-header">
@@ -331,10 +517,16 @@ function GroupAccountBook() {
                             <div className="group-date-badge">
                                 🗓️ {groupInfo.startDate} ~ {groupInfo.endDate}
                             </div>
+                            {/*그룹가계부 관리자만 수정가능 */}
+                            {isAdmin && (
+                                <button onClick={() => setIsUpdateModalOpen(true)}>
+                                    수정
+                                </button>
+                            )}
                         </header>
 
-                    <div className="summary-section">
-                        <div className="summary-card income-card">
+                        <div className="summary-section">
+                            <div className="summary-card income-card">
                                 <span className="summary-label">총 수입:</span>
                                 <span className="summary-amount">+{totalIncome.toLocaleString()}원</span>
                             </div>
@@ -346,72 +538,70 @@ function GroupAccountBook() {
 
                         <div className="search-wrapper">
                             <div className="filter-group">
-                                <label className="checkbox-label">
-                                    <input 
-                                        type="checkbox" 
-                                        checked={showIncome} 
-                                        onChange={handleIncomeToggle} 
-                                    />
-                                    <span className="label-text income">수입</span>
-                                </label>
-                                <label className="checkbox-label">
-                                    <input 
-                                        type="checkbox" 
-                                        checked={showExpense} 
-                                        onChange={handleExpenseToggle} 
-                                    />
-                                    <span className="label-text expense">지출</span>
-                                </label>
-                            </div>
-                            
-                            <input 
-                                type="text" 
-                                className="search-input" 
-                                placeholder="내역 검색" 
-                                value={searchTerm} 
-                                onChange={(e) => setSearchTerm(e.target.value)} 
-                            />
+                            <label className="checkbox-label">
+                                <input 
+                                    type="checkbox" 
+                                    checked={showIncome} 
+                                    onChange={handleIncomeToggle} 
+                                />
+                                <span className="label-text income">수입</span>
+                            </label>
+                            <label className="checkbox-label">
+                                <input 
+                                    type="checkbox" 
+                                    checked={showExpense} 
+                                    onChange={handleExpenseToggle} 
+                                />
+                                <span className="label-text expense">지출</span>
+                            </label>
                         </div>
-                        <div className="list-header">
-                            <h3 className="section-title">거래 내역</h3>
-                            <div className="date-filter-wrapper">
-                                <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="date-input" />
-                                <span className="date-separator">~</span>
-                                <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="date-input" />
-                            </div>
+                
+                        <input 
+                            type="text" 
+                            className="search-input" 
+                            placeholder="내역 검색" 
+                            value={searchTerm} 
+                            onChange={(e) => setSearchTerm(e.target.value)} 
+                        />
+                    </div>
+                    <div className="list-header">
+                        <h3 className="section-title">거래 내역</h3>
+                        <div className="date-filter-wrapper">
+                            <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="date-input" />
+                            <span className="date-separator">~</span>
+                            <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="date-input" />
                         </div>
-                        
-                        <div className="list-container">
-                            {filteredTransactions.length > 0 ? (
-                                filteredTransactions.map((t, index) => (
-                                    <div key={t.id || index} className="list-item" onClick={() => openViewModal(t)} style={{cursor: 'pointer'}}>
-                                        <div className="item-info">
-                                            <span className="item-text">
-                                                {t.text} 
-                                                {t.nickname && <span style={{fontSize:'0.8em', color:'#888', marginLeft:'5px'}}>({t.nickname})</span>}
-                                            </span>
-                                            <span className="item-date">{t.date}</span>
-                                        </div>
-                                        <div className="item-right">
-                                            <span className={`item-amount ${t.type?.toUpperCase() === 'IN' ? 'income' : 'expense'}`}>
-                                                {t.type?.toUpperCase() === 'IN' ? '+' : '-'}
-                                                {Math.abs(t.amount).toLocaleString()}원
-                                            </span>
-                                            <div className="item-actions">
-                                                <button className="action-btn" onClick={(e) => openEditModal(e, t)}>수정</button>
-                                                <button className="action-btn del-btn" onClick={(e) => openDeleteModal(e, t)}>삭제</button>
-                                            </div>
+                    </div>
+            
+                    <div className="list-container">
+                        {filteredTransactions.length > 0 ? (
+                            filteredTransactions.map((t, index) => (
+                                <div key={t.id || index} className="list-item" onClick={() => openViewModal(t)} style={{cursor: 'pointer'}}>
+                                    <div className="item-info">
+                                        <span className="item-text">
+                                            {t.text} 
+                                            {t.nickname && <span style={{fontSize:'0.8em', color:'#888', marginLeft:'5px'}}>({t.nickname})</span>}
+                                        </span>
+                                        <span className="item-date">{t.date}</span>
+                                    </div>
+                                    <div className="item-right">
+                                        <span className={`item-amount ${t.type?.toUpperCase() === 'IN' ? 'income' : 'expense'}`}>
+                                            {t.type?.toUpperCase() === 'IN' ? '+' : '-'}
+                                            {Math.abs(t.amount).toLocaleString()}원
+                                        </span>
+                                        <div className="item-actions">
+                                            <button className="action-btn" onClick={(e) => openEditModal(e, t)}>수정</button>
+                                            <button className="action-btn del-btn" onClick={(e) => openDeleteModal(e, t)}>삭제</button>
                                         </div>
                                     </div>
-                                ))
-                            ) : (
-                                <p className="no-data">표시할 내역이 없습니다.</p>
-                            )}
-                        </div>
-                        <button className="add-btn" onClick={() => navigate(`/mypage/group/${currentGroupId}/expenseForm`)}>새 내역 추가하기</button>
+                                </div>
+                            ))
+                        ) : (
+                            <p className="no-data">표시할 내역이 없습니다.</p>
+                        )}
                     </div>
+                    <button className="add-btn" onClick={() => navigate(`/mypage/group/${currentGroupId}/expenseForm`)}>새 내역 추가하기</button>
                 </div>
-
                 <div className='right-side'>
                     {/* <div className={styles['month-selector-container']}>
                         <div className={styles['month-nav-group']}>

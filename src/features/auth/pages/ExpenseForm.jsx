@@ -18,7 +18,7 @@ const ExpenseForm = ({ mode = 'personal', groupId, groupStart, groupEnd }) => {
   const [selectedMemList, setSelectedMemList] = useState([]);
   const [splitResult, setSplitResult] = useState({ amount: 0, count: 1 });
   const [groupName, setGroupName] = useState('');
-
+  
   //날짜 관련 
   const [groupPeriod, setGroupPeriod] = useState({ start: '', end: '' });
 
@@ -28,7 +28,6 @@ const ExpenseForm = ({ mode = 'personal', groupId, groupStart, groupEnd }) => {
   const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef(null);
   const [recentItems, setRecentItems] = useState([]);
-  
   const getToday = () => {
     const date = new Date();
     const year = date.getFullYear();
@@ -288,14 +287,14 @@ const ExpenseForm = ({ mode = 'personal', groupId, groupStart, groupEnd }) => {
 
       if (mode === 'group') {
         if (!groupId) return;
-        await transApi.groupTransSave({
-          ...formData,
-          userId: user?.userId,
-          groupBId: Number(groupId),
-          type: transType,
-          nickName: user?.nickName || user?.nickname || ""
+        await transApi.groupTransSave({ 
+          ...formData, 
+          userId: user?.userId, 
+          groupBId: Number(groupId), 
+          type: transType, 
+          nickName: user?.nickName || user?.nickname || "" 
         });
-
+        
         if (isSplitActive && selectedMemList.length > 0) {
           const totalPeople = selectedMemList.length + 1;
           const splitAmount = Math.floor(Number(formData.originalAmount) / totalPeople);
@@ -401,7 +400,6 @@ const ExpenseForm = ({ mode = 'personal', groupId, groupStart, groupEnd }) => {
               </div>
               {isSplitActive && (
                 <>
-                
                   <div className="member-list-grid">
                     {memList.length > 0 ? memList.map((mem) => (
                       <label key={mem.userId} className="member-item-label">

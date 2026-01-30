@@ -36,17 +36,6 @@
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
 }
 
-.calendar-page-container {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  padding: 20px;
-  width: 100%;
-  height: calc(100vh - 100px);
-  box-sizing: border-box;
-  overflow: hidden;
-}
-
 .ledger-filter-bar {
   display: flex;
   gap: 20px;
@@ -85,6 +74,7 @@
   align-items: stretch; 
   flex: 1;
   min-height: 0;
+  height: 1500px;
 }
 
 .calendar-card {
