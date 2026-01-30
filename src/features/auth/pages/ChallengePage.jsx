@@ -499,14 +499,35 @@ export default function ChallengePage() {
     try {
       setJoinMsg("");
 
-      // ✅ 서버 호출
-      const res = await challengeApi.join({
+      // // ✅ 서버 호출
+      // const res = await challengeApi.join({
+      //   userId: user.userId,
+      //   challengeId: selected.challengeId,
+      //   startDate: joinForm.startDate,
+      //   endDate: joinForm.endDate,
+      //  ...(challengeMode === "GROUP" && {groupbId: selectedGroupId})
+      // });
+      let res;
+      if (challengeMode === "PERSONAL") {
+      // ✅ 개인 API 호출
+        res = await challengeApi.join({
         userId: user.userId,
         challengeId: selected.challengeId,
         startDate: joinForm.startDate,
         endDate: joinForm.endDate,
-       ...(challengeMode === "GROUP" && {groupbId: selectedGroupId})
       });
+    } else {
+      // ✅ 그룹 API 호출 (groupbId 필수 체크)
+      if (!selectedGroupId) return alert("참여할 그룹 가계부를 선택하세요.");
+      
+      const res = await challengeApi.joinGroup({
+        userId: user.userId,
+        groupbId: selectedGroupId,
+        challengeId: selected.challengeId,
+        startDate: joinForm.startDate,
+        endDate: joinForm.endDate,
+      });
+    }
 
       // ✅ 서버 응답에 값이 있으면 우선 사용, 없으면 내가 보낸 값 사용
       const startDate =
