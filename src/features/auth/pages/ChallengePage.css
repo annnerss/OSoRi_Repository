@@ -82,6 +82,15 @@
 
 .challenge-list-item.group {
   border-left: 6px solid #10b981;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 28px;
+  gap: 18px;
+  width: 100%;
+  height: auto;
+  min-height: 100px;
+  box-sizing: border-box;
 }
 
 .challenge-item-left {
@@ -96,10 +105,18 @@
   color: #111827;
 }
 
-.challenge-info span {
-  margin-right: 12px;
-  font-size: 15px;
-  color: #475569;
+.challenge-id {
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
+  margin-bottom: 6px;
+}
+
+.challenge-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
 }
 
 .challenge-join-btn {
@@ -122,6 +139,198 @@
   color: red;
   margin: 8px 0;
 }
+
+/* 참여하기 모달 */
+.ch-modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 9999;
+}
+
+.ch-modal {
+  width: min(520px, 100%);
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.18);
+  overflow: hidden;
+}
+
+.ch-modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.ch-modalHeader h3 {
+  margin: 0;
+  font-size: 16px;
+  color: #0f172a;
+}
+
+.ch-x {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 22px;
+  line-height: 1;
+  color: #64748b;
+}
+
+.ch-modalBody {
+  padding: 16px 18px;
+}
+
+.ch-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px dashed #eef2f7;
+}
+
+.ch-row:last-of-type {
+  border-bottom: none;
+}
+
+.ch-k {
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 700;
+}
+
+.ch-v {
+  font-size: 13px;
+  color: #0f172a;
+  font-weight: 600;
+  text-align: right;
+}
+
+.ch-form {
+  display: flex;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.ch-label {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: #334155;
+  font-weight: 700;
+}
+
+.ch-label input {
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 13px;
+}
+
+.ch-msg {
+  margin: 10px 0 0;
+  color: #ef4444;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ch-modalFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 18px;
+  border-top: 1px solid #eef2f7;
+}
+
+.ch-btn {
+  border: none;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ch-btn.ghost {
+  background: #eef2f7;
+  color: #334155;
+}
+
+.ch-btn.primary {
+  background: #2563eb;
+  color: #fff;
+}
+
+.ch-btn.primary:hover {
+  background: #1e40af;
+}
+
+/* ✅ [ADDED] 우측 버튼+기간 영역 */
+.challenge-item-right {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+/* ✅ [ADDED] 왼쪽 영역이 버튼에 밀리지 않게 */
+.challenge-item-left {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ✅ [ADDED] 참여된 상태 버튼 */
+.challenge-join-btn.joined {
+  background-color: #64748b;
+  cursor: default;
+}
+
+.challenge-join-btn.joined:hover {
+  background-color: #64748b;
+}
+
+/* ✅ [ADDED] 기간 텍스트를 "왼쪽 아래 줄"로 고정 */
+.challenge-period-left {
+  margin-top: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
+  text-align: left;
+  white-space: nowrap;
+}
+
+
+
+/* ✅ [ADDED] 참여된 상태 버튼: 비활성인데도 보기 좋게 */
+.challenge-join-btn.joined {
+  background-color: #64748b;
+  cursor: default;
+}
+
+.challenge-join-btn.joined:hover {
+  background-color: #64748b;
+}
+
+/* ✅ [ADDED] 버튼 아래 기간 표시 */
+.challenge-period-left {
+  margin-top: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
+  text-align: left;
+  white-space: nowrap;
+}
+
 
 
 

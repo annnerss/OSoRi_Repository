@@ -170,7 +170,6 @@ function CalendarView({ currentDate, setCurrentDate }) {
               onActiveStartDateChange={({activeStartDate}) => setCurrentDate(activeStartDate)}
               calendarType="gregory"
               
-              // 🌟 JSX 안에서 높이를 주는 법 (객체 형태)
               style={{ 
                 height: '100%', 
                 display: 'flex', 

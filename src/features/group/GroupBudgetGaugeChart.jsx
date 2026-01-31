@@ -8,14 +8,15 @@ function GroupBudgetGauge({ transactions = [], groupbId, monthlyBudget, startDat
   if(!monthlyBudget || monthlyBudget <= 0) {
     return (
       <>
-        <div className="info-card" >
-          <span style={{ fontSize: '3rem', marginBottom: '10px' }}>🎯</span>
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#333', margin: '5px 0' }}>설정된 예산이 없습니다</h3>
-          <p style={{ fontSize: '0.85rem', color: '#888', textAlign: 'center' }}>
+        <div className="info-card" style={{minHeight: '120%'}}>
+          <br/>
+          <span style={{ fontSize: '3rem', textAlign: 'center',}}>🎯
+          <h3 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#333', margin: '5px 0', textAlign: 'center'}}>설정된 예산이 없습니다</h3>
+          <p style={{ fontSize: '0.85rem', color: '#888', textAlign: 'center'}}>
             목표 예산을 설정하고<br />계획적인 소비 관리를 시작해보세요!
           </p>
+          </span>
         </div>
-        <br/><br/><br/><br/><br/>
       </>
     );
   }
@@ -42,9 +43,12 @@ function GroupBudgetGauge({ transactions = [], groupbId, monthlyBudget, startDat
   const today = new Date();
   const diffTime = today - start;
   const elapsedDays = Math.max(1, Math.min(totalDays, Math.ceil(diffTime / (1000 * 60 * 60 * 24))));
-  const percent = monthlyBudget > 0 ? Math.round((currentSpent / monthlyBudget) * 100) : 0;
+  
+  const calculatedPercent = monthlyBudget > 0 ? Math.round((currentSpent / monthlyBudget) * 100) : 0;
+  const percent = Math.min(100, calculatedPercent);
+  
   const availableBudget = (monthlyBudget - currentSpent) > 0 ? monthlyBudget - currentSpent : 0;
-  const overAmount = monthlyBudget-currentSpent
+  const overAmount = currentSpent - monthlyBudget
 
   const getStatusColor = (pct) => {
     if (pct >= 90) return '#ff4d4f';
@@ -83,7 +87,7 @@ function GroupBudgetGauge({ transactions = [], groupbId, monthlyBudget, startDat
   return (
     <div className="info-card">
       <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '10px' }}>🎯 예산 소진률</h3>
-      <div style={{ position: 'relative', width: '100%', height: '200px' }}>
+      <div style={{ position: 'relative', width: '100%', height: '160px', flex:1 }}>
         <Doughnut data={data} options={options} />
         <div style={{ 
             position: 'absolute', top: '70%', left: '50%', 
