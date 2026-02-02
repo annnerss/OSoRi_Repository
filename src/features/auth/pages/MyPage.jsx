@@ -121,7 +121,6 @@ const MyPage = () => {
 
   // 수락/거절 처리 함수
   const handleInviteAction = async (noti, status) => {
-    console.log("handleInviteAction noti : ",noti.notiId);
     try {
       const params = {
         status: status, // "ACCEPTED" / "REJECTED"
@@ -151,6 +150,20 @@ const MyPage = () => {
       alert("처리에 실패했습니다.");
     }
   };
+
+  const handleNotiRead = async (noti) =>{
+    try {
+      await groupBudgetApi.updateNotiIsRead(noti.notiId);
+
+      setNotifications(prev => {
+        if (!prev) return []; 
+        return prev.filter(n => n.notiId !== noti.notiId);
+      });
+        
+    } catch (error) {
+      console.error("알림 읽음 상태 변경 실패", error);
+    }
+  }
 
 
   return (
@@ -185,7 +198,9 @@ const MyPage = () => {
                           <button className="reject-btn" onClick={() => handleInviteAction(noti, "REJECTED")}>거절</button>
                         </div>
                       ) : (
-                        <span className="noti-label">{noti.message}</span>
+                        <div className="noti-btns">
+                          <button className="accept-btn" onClick={() => handleNotiRead(noti)}>읽음</button>
+                        </div>
                       )}
                     </li>
                   ))}
