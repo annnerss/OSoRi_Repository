@@ -27,6 +27,7 @@ function CalendarView({ currentDate, setCurrentDate }) {
     return cleanStr;
   };
 
+
   useEffect(() => {
     axios.get('http://localhost:8080/osori/group/gbList', { params: { userId } })
       .then(res => {

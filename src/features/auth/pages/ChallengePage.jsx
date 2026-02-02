@@ -6,9 +6,18 @@ import "./ChallengePage.css";
 import "./MyPage.css";
 import { challengeApi } from "../../../api/challengeApi.js";
 import { useAuth } from "../../../context/AuthContext";
+import { useGroupBudgets } from "../../../hooks/useGroupBudgets";
+
 
 // ✅ mockData 더이상 안씀 (서버가 MYTRANS 기준으로 검증)
 // import { transactions } from "../../../Data/mockData";
+
+const getValue = (obj, ...keys) => {
+  for (const key of keys) {
+    if (obj && obj[key] !== undefined && obj[key] !== null) return obj[key];
+  }
+  return undefined;
+};
 
 export default function ChallengePage() {
   const { user } = useAuth();
@@ -27,6 +36,9 @@ export default function ChallengePage() {
   const [list, setList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
+  const { groupBudgetList = [], isLoading: isGroupLoading } = useGroupBudgets(user?.userId);
+  // console.log("현재 불러온 그룹 가계부 목록:", groupBudgetList);
+  const [selectedGroupId, setSelectedGroupId] = useState(null);
 
   // 참여 모달
   const [isJoinOpen, setIsJoinOpen] = useState(false);
@@ -167,11 +179,57 @@ export default function ChallengePage() {
     }
   };
 
+
+  // 그룹가계부
+  // ❌ 기존 로직: selectedGroupId가 null이면 아무것도 안 나옴
+  // ✅ 수정 로직: 그룹 모드일 때, ID가 있으면 필터링하고 없으면 전체를 보여주거나 첫 번째 그룹으로 유도
+
+  const filteredList = useMemo(() => {
+  if (challengeMode === "GROUP") {
+    // 1. 선택된 가계부 ID가 없으면 아무것도 안 보여줌
+    if (!selectedGroupId) return []; 
+
+    return list.filter(c => {
+      // 💡 현재 로그상 데이터에 groupbId가 없으므로, 
+      // 만약 데이터에 ID가 없다면 '모든 가계부 공용'으로 간주하여 true를 반환하거나
+      // 실제 데이터의 필드명을 다시 확인해야 합니다.
+      const challengeGroupId = c.groupbId || c.group_id || c.groupId;
+      
+      // 만약 데이터에 그룹 정보가 아예 없다면(null/undefined), 
+      // 일단 모든 가계부에서 보이도록 설정하여 화면 노출을 확인합니다.
+      if (challengeGroupId === undefined || challengeGroupId === null) return true;
+      
+      return String(challengeGroupId) === String(selectedGroupId);
+    });
+  }
+  return list; 
+}, [list, challengeMode, selectedGroupId]);
+
+  console.log("필터링된 결과물 수:", filteredList.length);
+  console.log("현재 선택된 가계부 ID:", selectedGroupId);
+
   useEffect(() => {
-    loadList(challengeMode);
+    loadList(challengeMode); 
     loadMyJoined(challengeMode);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
+    if (challengeMode !== "GROUP") {
+      setSelectedGroupId(null);
+    }
   }, [challengeMode, user?.userId]);
+
+  useEffect(() => {
+    // 그룹 모드이고, 그룹 리스트는 있는데, 아직 선택된 ID가 없다면?
+    if (challengeMode === "GROUP" && groupBudgetList.length > 0 && !selectedGroupId) {
+      // console.log("자동으로 첫 번째 그룹 선택:", groupBudgetList[0].groupbId); // 디버깅용
+      setSelectedGroupId(groupBudgetList[0].groupbId);
+    }
+  }, [groupBudgetList, challengeMode, selectedGroupId]);
+
+  console.log("챌린지 목록 첫 번째 항목:", list[0]);
+  console.log("챌린지 목록 두 번째 항목:", list[1]);
+  console.log("챌린지 목록 세 번째 항목:", list[2]);
+
+
 
   // const getJoinLabel = (challengeId) => {
   //   const j = joinedMap[challengeId];
@@ -315,9 +373,35 @@ const confirmJoin = async () => {
           <div className="challenge-empty">챌린지가 없음</div>
         )}
 
-        {!isLoading && !errorMsg && list?.length > 0 && (
+        {challengeMode === "GROUP" && groupBudgetList.length > 0 && (
+          <div className="group-selection-area" style={{ marginBottom: '20px', padding: '10px' }}>
+            <p style={{ fontSize: '14px', marginBottom: '8px', color: '#666' }}>대상 그룹 가계부 선택:</p>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              {groupBudgetList.map((gb) => (
+                <button
+                  key={gb.groupbId}
+                  onClick={() => setSelectedGroupId(gb.groupbId)}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: '20px',
+                    border: '1px solid #ddd',
+                    backgroundColor: selectedGroupId === gb.groupbId ? '#2c3e50' : '#fff',
+                    color: selectedGroupId === gb.groupbId ? '#fff' : '#333',
+                    cursor: 'pointer'
+                  }}
+                >
+                  {gb.title}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+       
+
+        {!isLoading && !errorMsg && filteredList?.length > 0 && (
           <div className="challenge-list">
-            {list.map((c) => {
+            {filteredList.map((c) => {
               const id = c?.challengeId ?? c?.challenge_id;
               const desc = c?.description ?? c?.desc;
               const category = c?.category;
@@ -336,6 +420,15 @@ const confirmJoin = async () => {
                     <div className="cp-badge">{fmtMode(challengeMode)}</div>
                     <div className="cp-id">{id}</div>
                   </div>
+                  <p>
+                    {challengeMode === "GROUP" && selectedGroupId && (
+                      <span style={{ fontSize: '11px', color: '#4A90E2', fontWeight: 'bold' }}>
+                        {/* groupBudgetList의 요소(g)가 가진 ID 필드명을 확인하세요 (groupbId인지 id인지) */}
+                        [ {groupBudgetList.find(g => String(g.groupbId || g.id) === String(selectedGroupId))?.title || "선택된 가계부"} ] 대상
+                      </span>
+                    )}
+                  </p>
+
 
                   <div className="cp-desc">{desc}</div>
 
