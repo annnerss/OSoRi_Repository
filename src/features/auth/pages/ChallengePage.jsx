@@ -37,7 +37,6 @@ export default function ChallengePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
   const { groupBudgetList = [], isLoading: isGroupLoading } = useGroupBudgets(user?.userId);
-  // console.log("현재 불러온 그룹 가계부 목록:", groupBudgetList);
   const [selectedGroupId, setSelectedGroupId] = useState(null);
 
   // 참여 모달
@@ -171,7 +170,6 @@ export default function ChallengePage() {
         // ✅ 2. 그룹 모드일 때 선택된 가계부 ID가 없으면 실행 중단
         if (!selectedGroupId) return;
         
-        console.log(`[Request] ${selectedGroupId}번 가계부의 참여 목록 요청`);
         // API 호출 시 selectedGroupId를 확실히 전달 (서버의 SELECT WHERE 절에 사용됨)
         data = await challengeApi.groupJoinedList(selectedGroupId); 
       } else {
@@ -201,7 +199,6 @@ export default function ChallengePage() {
         };
       });
 
-      console.log(`[Result] ${selectedGroupId}번 가계부 세팅된 joinedMap:`, map);
       setJoinedMap(map);
     } catch (e) {
       console.error("참여 목록 로드 실패", e);
@@ -258,9 +255,6 @@ export default function ChallengePage() {
   return list; 
 }, [list, challengeMode, selectedGroupId]);
 
-  console.log("필터링된 결과물 수:", filteredList.length);
-  console.log("현재 선택된 가계부 ID:", selectedGroupId);
-
   useEffect(() => {
     loadList(challengeMode); 
     loadMyJoined(challengeMode);
@@ -296,10 +290,6 @@ useEffect(() => {
     loadMyJoined("PERSONAL");
   }
 }, [challengeMode, selectedGroupId, user?.userId]); // selectedGroupId가 바뀔 때마다 실행
-
-  console.log("챌린지 목록 첫 번째 항목:", list[0]);
-  console.log("챌린지 목록 두 번째 항목:", list[1]);
-  console.log("챌린지 목록 세 번째 항목:", list[2]);
 
 
 
@@ -366,7 +356,6 @@ useEffect(() => {
           startDate: joinForm.startDate,
           endDate: joinForm.endDate,
         });
-        console.log("그룹 챌린지 등록 프로세스 시작 (groupChall)", res);
       } else {
         // ✅ [분기 2] 개인 챌린지 참여 호출
         res = await challengeApi.join({
@@ -375,7 +364,6 @@ useEffect(() => {
           startDate: joinForm.startDate,
           endDate: joinForm.endDate,
         });
-        console.log("개인 챌린지 등록 프로세스 시작", res);
       }
 
       setJoinMsg(pickMessage(res));
