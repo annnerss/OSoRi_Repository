@@ -295,11 +295,8 @@ const loadRanking = async (challengeId) => {
     }
   }, [challengeMode, user?.userId]);
 
-  //그룹챌린지 탭 클릭 시 기본으로 첫번째 가계부 띄워주기
   useEffect(() => {
-  // 그룹 모드이고, 가계부 리스트는 있는데, 아직 선택된 ID가 없다면 실행
   if (challengeMode === "GROUP" && groupBudgetList.length > 0 && !selectedGroupId) {
-      // 첫 번째 가계부의 ID 추출 (DB 필드명에 따라 groupbId 또는 id 확인)
       const firstId = groupBudgetList[0].groupbId || groupBudgetList[0].group_id;
       if (firstId) {
         setSelectedGroupId(firstId);
@@ -307,20 +304,28 @@ const loadRanking = async (challengeId) => {
     }
   }, [challengeMode, groupBudgetList, selectedGroupId]);
 
-  // ChallengePage.jsx 내 useEffect 부분
-useEffect(() => {
-  if (challengeMode === "GROUP") {
-    if (selectedGroupId) {
-      // 선택된 가계부가 있을 때만 해당 가계부의 참여 목록을 가져옴
-      loadMyJoined("GROUP"); 
+  useEffect(() => {
+    if (challengeMode === "GROUP") {
+      if (selectedGroupId) {
+        loadMyJoined("GROUP"); 
+      } else {
+        setJoinedMap({});
+      }
     } else {
-      // 선택된 가계부가 없으면 참여 정보를 초기화하여 겹침 방지
-      setJoinedMap({});
+      loadMyJoined("PERSONAL");
     }
-  } else {
-    loadMyJoined("PERSONAL");
-  }
-}, [challengeMode, selectedGroupId, user?.userId]); // selectedGroupId가 바뀔 때마다 실행
+  }, [challengeMode, selectedGroupId, user?.userId]); 
+
+  useEffect(() => {
+    if (challengeMode === "GROUP" && selectedGroupId && Object.keys(joinedMap).length > 0) {
+      Object.keys(joinedMap).forEach((id) => {
+        // 해당 챌린지의 상태가 '진행중(PROCEEDING)'인 경우에만 순위 정보를 가져옴
+        if (joinedMap[id]?.status === "PROCEEDING") {
+          loadRanking(id);
+        }
+      });
+    }
+  }, [joinedMap, challengeMode, selectedGroupId]);
 
 
 
@@ -623,26 +628,59 @@ useEffect(() => {
 
                     {/* 적게 지출하기 실시간 순위 */}
                   {j?.status === "PROCEEDING" && (
-                  <div className="cp-ranking-section" style={{ marginTop: '15px', borderTop: '1px dashed #eee', paddingTop: '10px' }}>
-                    <button 
-                      onClick={() => loadRanking(id)}
-                      style={{ fontSize: '12px', color: '#4A90E2', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-                    >
-                      🏆 실시간 순위 보기
-                    </button>
-                    
-                    {rankings[id] && (
-                      <ul style={{ listStyle: 'none', padding: '10px 0', margin: 0 }}>
-                        {rankings[id].slice(0, 3).map((rk, idx) => (
-                          <li key={rk.userId} style={{ fontSize: '13px', marginBottom: '4px', display: 'flex', justifyContent: 'space-between' }}>
-                            <span>{idx + 1}위. {rk.nickname}</span>
-                            <span style={{ fontWeight: 'bold' }}>{rk.totalAmount.toLocaleString()}원</span>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                )}
+                    <div className="cp-ranking-section" style={{
+                      marginTop: '15px',
+                      padding: '12px',
+                      backgroundColor: '#f8fbff',
+                      borderRadius: '10px',
+                      border: '1px solid #e1e9f5'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                        <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#2c3e50' }}>
+                          🏆 실시간 그룹 순위 (지출 적은 순)
+                        </span>
+                        <button 
+                          onClick={() => loadRanking(id)}
+                          style={{ fontSize: '11px', color: '#4A90E2', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
+                        >
+                          새로고침 ↻
+                        </button>
+                      </div>
+                      
+                      {rankings[id] && rankings[id].length > 0 ? (
+                        <div className="cp-ranking-list">
+                          {rankings[id].slice(0, 3).map((rk, idx) => {
+                            const isFirst = idx === 0;
+                            return (
+                              <div key={rk.userId} style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                padding: '8px 10px',
+                                marginBottom: '4px',
+                                backgroundColor: isFirst ? '#fff' : 'rgba(255,255,255,0.5)',
+                                borderRadius: '8px',
+                                boxShadow: isFirst ? '0 2px 4px rgba(0,0,0,0.05)' : 'none',
+                                border: isFirst ? '1px solid #ffeaa7' : '1px solid #eee'
+                              }}>
+                                <span style={{ fontSize: '13px', color: isFirst ? '#d35400' : '#333', fontWeight: isFirst ? 'bold' : 'normal' }}>
+                                  {isFirst ? '🥇 ' : `${idx + 1}위. `}
+                                  {rk.nickname} {String(rk.userId) === String(user?.userId) && <small style={{color:'#999'}}>(나)</small>}
+                                </span>
+                                <span style={{ fontSize: '13px', fontWeight: 'bold', color: isFirst ? '#e67e22' : '#555' }}>
+                                  {Number(rk.totalAmount).toLocaleString()}원
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div style={{ fontSize: '12px', color: '#999', textAlign: 'center', padding: '10px' }}>
+                          아직 집계된 지출 내역이 없습니다.
+                        </div>
+                      )}
+                    </div>
+                  )}
 
 
 
