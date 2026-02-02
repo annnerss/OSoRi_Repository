@@ -13,6 +13,7 @@ import { useGroupBudgets } from "../../../hooks/useGroupBudgets";
 const MyPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [groupBudgetList, setGroupBudgetList] = useState([]);
 
   const displayName = user?.nickName || user?.nickname || user?.userName || "회원";
   const email = user?.email || "";
