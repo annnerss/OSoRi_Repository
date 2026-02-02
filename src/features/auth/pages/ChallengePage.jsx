@@ -1,9 +1,14 @@
-// 테스트용
+
+// src/features/auth/pages/ChallengePage.jsx
+
 import React, { useEffect, useMemo, useState } from "react";
 import "./ChallengePage.css";
 import "./MyPage.css";
 import { challengeApi } from "../../../api/challengeApi.js";
 import { useAuth } from "../../../context/AuthContext";
+
+// ✅ mockData 더이상 안씀 (서버가 MYTRANS 기준으로 검증)
+// import { transactions } from "../../../Data/mockData";
 
 export default function ChallengePage() {
   const { user } = useAuth();
@@ -32,6 +37,11 @@ export default function ChallengePage() {
   // ✅ 참여 완료된 챌린지 상태 저장 (버튼/기간 표시용)
   const [joinedMap, setJoinedMap] = useState({});
 
+  // ✅ 지난 챌린지 모달
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [historyList, setHistoryList] = useState([]);
+  const [historyMsg, setHistoryMsg] = useState("");
+
   const normalizeList = (data) => {
     if (Array.isArray(data)) return data;
     if (Array.isArray(data?.list)) return data.list;
@@ -40,71 +50,44 @@ export default function ChallengePage() {
     return [];
   };
 
-  const fetchChallenges = async () => {
-    setIsLoading(true);
-    setErrorMsg("");
+  const parseDate = (v) => {
+    if (!v) return "";
+    if (typeof v === "string") return v.slice(0, 10);
     try {
-      const data = await challengeApi.list({ challengeMode });
-      setList(normalizeList(data));
-    } catch (err) {
-      console.error(err);
-      setList([]);
-      setErrorMsg("챌린지 목록 조회 실패");
-    } finally {
-      setIsLoading(false);
+      return new Date(v).toISOString().slice(0, 10);
+    } catch (e) {
+      return "";
     }
   };
 
-  useEffect(() => {
-    fetchChallenges();
-  }, [challengeMode]);
-
-  const get = (obj, ...keys) => {
-    for (const k of keys) {
-      if (obj && obj[k] != null) return obj[k];
-    }
-    return null;
+  const fmtType = (t) => {
+    if (t === "IN") return "수입";
+    if (t === "OUT") return "지출";
+    return t || "-";
   };
 
-  const fmtType = (type) => {
-    switch (type) {
-      case "EXPENSE":
-        return "지출";
-      case "INCOME":
-        return "수입";
-      default:
-        return type;
-    }
+  const fmtMode = (m) => {
+    if (m === "PERSONAL") return "개인";
+    if (m === "GROUP") return "그룹";
+    return m || "-";
   };
 
-  const fmtDays = (days) => `${days}일`;
+  const todayStr = useMemo(() => {
+    const d = new Date();
+    return d.toISOString().slice(0, 10);
+  }, []);
 
-  const toYMD = (d) => {
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
-    const dd = String(d.getDate()).padStart(2, "0");
-    return `${yyyy}-${mm}-${dd}`;
-  };
-
-  const addDays = (ymd, add) => {
-    const d = new Date(ymd);
-    d.setDate(d.getDate() + add);
-    return toYMD(d);
-  };
-
-  // startDate 기준으로 상태 결정 (테스트용 UI 표시)
-  const calcJoinLabel = (startDate) => {
-    const today = toYMD(new Date());
-    return startDate > today ? "참여 예정" : "진행중";
+  const calcEndDate = (startDate, duration) => {
+    const d = new Date(startDate);
+    d.setDate(d.getDate() + (Math.max(1, duration) - 1));
+    return d.toISOString().slice(0, 10);
   };
 
   const openJoin = (challenge) => {
-    const duration = Number(challenge?.duration || 0);
-    const today = toYMD(new Date());
-    const end = duration > 0 ? addDays(today, duration - 1) : today;
-
     setSelected(challenge);
-    setJoinForm({ startDate: today, endDate: end });
+    const start = todayStr;
+    const end = calcEndDate(start, challenge?.duration || 1);
+    setJoinForm({ startDate: start, endDate: end });
     setJoinMsg("");
     setIsJoinOpen(true);
   };
@@ -115,562 +98,432 @@ export default function ChallengePage() {
     setJoinMsg("");
   };
 
-  // ✅ 테스트용: 서버 호출 없이 버튼/기간만 먼저 반영
-  const submitJoin = async () => {
+  const openHistory = async () => {
     if (!user?.userId) {
-      alert("로그인이 필요함");
+      setHistoryMsg("로그인이 필요함");
+      setIsHistoryOpen(true);
       return;
     }
-    if (!selected?.challengeId) {
-      alert("challengeId가 없음 (목록 데이터 확인 필요)");
-      return;
-    }
-    if (!joinForm.startDate || !joinForm.endDate) {
-      setJoinMsg("시작일/종료일을 입력해야 함");
-      return;
-    }
+    setHistoryMsg("");
+    setIsHistoryOpen(true);
 
-    // 프론트 1차 검증: 기간이 duration과 맞는지
-    const duration = Number(selected?.duration || 0);
-    if (duration > 0) {
-      const s = new Date(joinForm.startDate);
-      const e = new Date(joinForm.endDate);
-      const days = Math.floor((e - s) / (1000 * 60 * 60 * 24)) + 1;
-      if (days !== duration) {
-        setJoinMsg(`기간은 ${duration}일로 맞춰야 함`);
-        return;
-      }
+    try {
+      const data = await challengeApi.myPastJoinedList({
+        userId: user.userId,
+        challengeMode,
+      });
+      setHistoryList(normalizeList(data));
+    } catch (e) {
+      setHistoryMsg(e?.message || "지난 챌린지 목록을 불러오지 못했음");
+      setHistoryList([]);
     }
+  };
 
-    // ✅ 서버 호출 안 함(테스트용)
-    const label = calcJoinLabel(joinForm.startDate);
-    setJoinedMap((prev) => ({
-      ...prev,
-      [selected.challengeId]: {
-        startDate: joinForm.startDate,
-        endDate: joinForm.endDate,
-        status: label === "참여 예정" ? "RESERVED" : "PROCEEDING",
-      },
-    }));
+  const closeHistory = () => {
+    setIsHistoryOpen(false);
+    setHistoryList([]);
+    setHistoryMsg("");
+  };
 
-    closeJoin();
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setJoinForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const loadList = async (mode) => {
+    setIsLoading(true);
+    setErrorMsg("");
+    try {
+      const data = await challengeApi.list({ challengeMode: mode });
+      setList(normalizeList(data));
+    } catch (e) {
+      setErrorMsg("챌린지 목록을 불러오지 못했음");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loadMyJoined = async (mode) => {
+    if (!user?.userId) return;
+    try {
+      const data = await challengeApi.myJoinedList({
+        userId: user.userId,
+        challengeMode: mode,
+      });
+      const arr = normalizeList(data);
+      const map = {};
+      arr.forEach((row) => {
+        const id = row?.challengeId || row?.challenge_id;
+        if (!id) return;
+        map[id] = {
+          status: row?.status,
+          startDate: parseDate(row?.startDate),
+          endDate: parseDate(row?.endDate),
+        };
+      });
+      setJoinedMap(map);
+    } catch (e) {
+      // 실패해도 화면은 떠야 하니 무시
+    }
+  };
+
+  useEffect(() => {
+    loadList(challengeMode);
+    loadMyJoined(challengeMode);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [challengeMode, user?.userId]);
+
+  // const getJoinLabel = (challengeId) => {
+  //   const j = joinedMap[challengeId];
+  //   if (!j) return "참여하기";
+  //   if (j.status === "RESERVED") return "참여 예정";
+  //   if (j.status === "PROCEEDING") return "진행중";
+  //   if (j.status === "SUCCESS") return "성공";
+  //   if (j.status === "FAILED") return "실패";
+  //   return "참여중";
+  // };
+
+  // const isJoined = (challengeId) => !!joinedMap[challengeId];
+
+  const pickMessage = (res) => {
+    if (res == null) return "참여 완료";
+    if (typeof res === "string") return res;
+    if (typeof res === "object") {
+      return (
+        res?.message ||
+        res?.msg ||
+        res?.data?.message ||
+        res?.data?.msg ||
+        "참여 완료"
+      );
+    }
+    return "참여 완료";
+  };
+
+  const pickErrorMessage = (e) => {
+    return (
+      e?.message ||
+      e?.response?.data?.message ||
+      e?.response?.data?.msg ||
+      e?.data?.message ||
+      "참여 실패"
+    );
+  };
+
+  // ChallengePage.jsx 수정안
+
+// ChallengePage.jsx
+
+const confirmJoin = async () => {
+  if (!selected || !user?.userId) return;
+
+  try {
+    // 1. 서버에 참여 요청
+    const res = await challengeApi.join({
+      userId: user.userId,
+      challengeId: selected.challengeId,
+      startDate: joinForm.startDate,
+      endDate: joinForm.endDate,
+    });
+
+    setJoinMsg(pickMessage(res));
+
+    // 2. ✅ 서버의 스케줄러가 상태를 바꿀 시간을 조금 더 줍니다 (1.5초)
+    // 그 후 내 참여 목록을 다시 불러와서 'FAILED' 혹은 'PROCEEDING' 상태를 UI에 반영합니다.
+    setTimeout(async () => {
+      await loadMyJoined(challengeMode); // 서버에서 최신 상태 다시 조회
+      closeJoin();
+    }, 1500); 
+
+  } catch (e) {
+    setJoinMsg(pickErrorMessage(e));
+  }
+};
+
+  // getJoinLabel 함수 보강
+  const getJoinLabel = (challengeId) => {
+    const j = joinedMap[challengeId];
+    // 맵에 데이터가 없으면 다시 참여 가능한 상태로 간주
+    if (!j) return "참여하기"; 
+    
+    // if (j.status === "RESERVED") return "참여 예정";
+    // if (j.status === "PROCEEDING") return "진행중";
+    // if (j.status === "SUCCESS") return "성공";
+    // if (j.status === "FAILED") return "실패";
+    // return "참여중";
+    switch(j.status) {
+      case "SUCCESS": return "성공(완료)"; // 성공 시 문구 변경
+      case "RESERVED": return "참여 예정";
+      case "PROCEEDING": return "진행중";
+      case "FAILED": return "참여하기"; // 실패 시 재도전 허용 (원치 않으시면 SUCCESS처럼 처리)
+      default: return "참여중";
+    }
+  };
+
+  // isJoined 판단 로직 수정
+  // FAILED가 된 챌린지는 다시 '참여하기'가 뜨도록 하려면 status 체크가 필요합니다.
+  const isJoined = (challengeId) => {
+    const j = joinedMap[challengeId];
+    if (!j) return false;
+    // 실패(FAILED)했거나 성공(SUCCESS)한 챌린지는 다시 참여하기 버튼이 활성화되어야 함
+    return j.status === "PROCEEDING" || j.status === "RESERVED" || j.status === "SUCCESS";
   };
 
   return (
-    <main className="challenge-page">
-      <div className="challenge-header">
-        <h2>챌린지</h2>
-        <p>{displayName} 님, 목표를 정하고 재미있게 절약/관리하는 곳</p>
+    <div className="challenge-wrap">
+      <div className="challenge-head">
+        <h2 className="challenge-title">챌린지</h2>
+        <div className="challenge-sub">
+          {displayName} 님, 목표를 정하고 재밌게 절약/관리하는 곳
+        </div>
 
         <div className="challenge-tab">
           <button
-            className={challengeMode === "PERSONAL" ? "active" : ""}
+            className={`challenge-tabBtn ${
+              challengeMode === "PERSONAL" ? "active" : ""
+            }`}
             onClick={() => setChallengeMode("PERSONAL")}
           >
             개인 챌린지
           </button>
           <button
-            className={challengeMode === "GROUP" ? "active" : ""}
+            className={`challenge-tabBtn ${
+              challengeMode === "GROUP" ? "active" : ""
+            }`}
             onClick={() => setChallengeMode("GROUP")}
           >
             그룹 챌린지
           </button>
+
+          {/* ✅ 오른쪽에 "지난 챌린지" 버튼 추가 */}
+          <button
+            type="button"
+            className="challenge-tabBtn challenge-history-btn"
+            onClick={openHistory}
+          >
+            지난 챌린지
+          </button>
         </div>
       </div>
 
-      <div className="challenge-list-wrapper">
-        <section className="challenge-list">
-          {isLoading && <p>불러오는 중...</p>}
-          {errorMsg && <p className="error">{errorMsg}</p>}
+      <div className="challenge-body">
+        {isLoading && <div className="challenge-empty">불러오는 중...</div>}
+        {!isLoading && errorMsg && (
+          <div className="challenge-empty">{errorMsg}</div>
+        )}
+        {!isLoading && !errorMsg && list?.length === 0 && (
+          <div className="challenge-empty">챌린지가 없음</div>
+        )}
 
-          {list.map((c) => {
-            const id = get(c, "challengeId", "challenge_id", "id", "_id", "ID");
-            const desc = get(c, "description", "desc", "title", "name");
-            const category = get(c, "category");
-            const type = get(c, "type");
-            const duration = get(c, "duration", "days");
+        {!isLoading && !errorMsg && list?.length > 0 && (
+          <div className="challenge-list">
+            {list.map((c) => {
+              const id = c?.challengeId ?? c?.challenge_id;
+              const desc = c?.description ?? c?.desc;
+              const category = c?.category;
+              const type = c?.type;
+              const duration = c?.duration;
+              const target = c?.target;
+              const targetCount = c?.targetCount ?? c?.target_count;
 
-            const normalized = {
-              challengeId: id,
-              description: desc,
-              category,
-              type,
-              duration: Number(duration || 0),
-              raw: c,
-            };
+              const j = joinedMap[id];
+              const startDate = j?.startDate;
+              const endDate = j?.endDate;
 
-            const joined = joinedMap?.[id];
-            const joinBtnText = joined
-              ? calcJoinLabel(joined.startDate)
-              : "참여하기";
-
-            const periodText = joined
-              ? `시작날짜(${joined.startDate}) ~ 종료날짜(${joined.endDate})`
-              : "";
-
-            return (
-              <article
-                key={String(id) + desc}
-                className={`challenge-list-item ${
-                  challengeMode === "GROUP" ? "group" : "personal"
-                }`}
-              >
-                {/* ✅ 왼쪽 영역 */}
-                <div className="challenge-item-left">
-                  <div className="challenge-title">{desc}</div>
-
-                  <div className="challenge-info">
-                    <span>카테고리: {category || "전체"}</span>
-                    <span>구분: {fmtType(type)}</span>
-                    <span>기간: {fmtDays(duration)}</span>
+              return (
+                <article key={String(id) + desc} className="cp-card">
+                  <div className="cp-cardTop">
+                    <div className="cp-badge">{fmtMode(challengeMode)}</div>
+                    <div className="cp-id">{id}</div>
                   </div>
 
-                  {/* ✅ 여기로 내림: 왼쪽 빈 공간(화살표 방향)으로 확실히 감 */}
-                  {joined && (
-                    <div className="challenge-period-left">{periodText}</div>
-                  )}
-                </div>
+                  <div className="cp-desc">{desc}</div>
 
-                {/* ✅ 오른쪽 버튼 영역 */}
-                <div className="challenge-item-right">
-                  <button
-                    type="button"
-                    className={`challenge-join-btn ${joined ? "joined" : ""}`}
-                    onClick={() => openJoin(normalized)}
-                    disabled={!!joined}
-                    title={joined ? "이미 참여한 챌린지(테스트 반영됨)" : "참여하기"}
-                  >
-                    {joinBtnText}
-                  </button>
-                </div>
-              </article>
-            );
-          })}
-        </section>
+                  <div className="cp-meta">
+                    <div className="cp-metaRow">
+                      <span className="cp-k">카테고리</span>
+                      <span className="cp-v">{category || "전체"}</span>
+                    </div>
+                    <div className="cp-metaRow">
+                      <span className="cp-k">구분</span>
+                      <span className="cp-v">{fmtType(type)}</span>
+                    </div>
+                    <div className="cp-metaRow">
+                      <span className="cp-k">기간</span>
+                      <span className="cp-v">{duration}일</span>
+                    </div>
+
+                    {targetCount ? (
+                      <div className="cp-metaRow">
+                        <span className="cp-k">목표</span>
+                        <span className="cp-v">{targetCount}회 이하</span>
+                      </div>
+                    ) : (
+                      <div className="cp-metaRow">
+                        <span className="cp-k">목표</span>
+                        <span className="cp-v">
+                          {target?.toLocaleString?.() || target}원 이하
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {startDate && endDate && (
+                    <div className="cp-dates">
+                      <div className="cp-date">
+                        시작날짜({startDate}) ~ 종료날짜({endDate})
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="cp-actions">
+                    <button
+                      className={`cp-joinBtn ${isJoined(id) ? "disabled" : ""}`}
+                      onClick={() => {
+                        if (isJoined(id)) return;
+                        openJoin(c);
+                      }}
+                      disabled={isJoined(id)}
+                    >
+                      {getJoinLabel(id)}
+                    </button>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        )}
       </div>
 
-      {/* 참여하기 모달 */}
-      {isJoinOpen && (
-        <div className="ch-modalOverlay" onMouseDown={closeJoin}>
-          <div className="ch-modal" onMouseDown={(e) => e.stopPropagation()}>
-            <div className="ch-modalHeader">
-              <h3>챌린지 참여</h3>
-              <button className="ch-x" onClick={closeJoin}>
-                ×
-              </button>
+      {/* 참여 모달 */}
+      {isJoinOpen && selected && (
+        <div className="ch-modalOverlay" onClick={closeJoin}>
+          <div className="ch-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="ch-modalTitle">챌린지 참여</div>
+            <div className="ch-modalDesc">
+              <div className="ch-modalDescStrong">{selected?.description}</div>
+              <div className="ch-modalDescSub">기간 {selected?.duration}일</div>
             </div>
 
-            <div className="ch-modalBody">
-              <div className="ch-row">
-                <span className="ch-k">챌린지 ID</span>
-                <span className="ch-v">{selected?.challengeId}</span>
+            <div className="ch-form">
+              <div className="ch-field">
+                <label>시작일</label>
+                <input
+                  type="date"
+                  name="startDate"
+                  value={joinForm.startDate}
+                  onChange={(e) => {
+                    handleChange(e);
+                    const v = e.target.value;
+                    const end = calcEndDate(v, selected?.duration || 1);
+                    setJoinForm((prev) => ({
+                      ...prev,
+                      startDate: v,
+                      endDate: end,
+                    }));
+                  }}
+                />
               </div>
-              <div className="ch-row">
-                <span className="ch-k">내용</span>
-                <span className="ch-v">{selected?.description}</span>
+              <div className="ch-field">
+                <label>종료일</label>
+                <input
+                  type="date"
+                  name="endDate"
+                  value={joinForm.endDate}
+                  onChange={handleChange}
+                />
               </div>
-              <div className="ch-row">
-                <span className="ch-k">기간</span>
-                <span className="ch-v">{fmtDays(selected?.duration)}</span>
-              </div>
-
-              <div className="ch-form">
-                <label className="ch-label">
-                  시작일
-                  <input
-                    type="date"
-                    value={joinForm.startDate}
-                    onChange={(e) => {
-                      const startDate = e.target.value;
-                      const duration = Number(selected?.duration || 0);
-                      const endDate =
-                        duration > 0
-                          ? addDays(startDate, duration - 1)
-                          : joinForm.endDate;
-                      setJoinForm((p) => ({ ...p, startDate, endDate }));
-                      setJoinMsg("");
-                    }}
-                  />
-                </label>
-
-                <label className="ch-label">
-                  종료일
-                  <input
-                    type="date"
-                    value={joinForm.endDate}
-                    onChange={(e) => {
-                      setJoinForm((p) => ({ ...p, endDate: e.target.value }));
-                      setJoinMsg("");
-                    }}
-                  />
-                </label>
-              </div>
-
-              {joinMsg && <p className="ch-msg">{joinMsg}</p>}
             </div>
 
-            <div className="ch-modalFooter">
+            {joinMsg && <div className="ch-msg">{joinMsg}</div>}
+
+            <div className="ch-actions">
               <button className="ch-btn ghost" onClick={closeJoin}>
                 취소
               </button>
-              <button className="ch-btn primary" onClick={submitJoin}>
+              <button className="ch-btn primary" onClick={confirmJoin}>
                 참여 확정
               </button>
             </div>
           </div>
         </div>
       )}
-    </main>
+
+      {/* ✅ 지난 챌린지 모달 */}
+      {isHistoryOpen && (
+        <div className="ch-modalOverlay" onClick={closeHistory}>
+          <div
+            className="ch-modal ch-modal--history"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="ch-modalTitle">지난 챌린지</div>
+
+            {historyMsg && <div className="ch-msg">{historyMsg}</div>}
+
+            {!historyMsg && historyList?.length === 0 && (
+              <div className="challenge-empty">지난 챌린지가 없음</div>
+            )}
+
+            {!historyMsg && historyList?.length > 0 && (
+              <div className="ch-historyList">
+                {historyList.map((h) => {
+                  const status = h?.status;
+                  const statusCls =
+                    status === "SUCCESS"
+                      ? "success"
+                      : status === "FAILED"
+                      ? "failed"
+                      : "";
+                  return (
+                    <div
+                      key={`${h?.challengeId}-${h?.startDate}-${h?.endDate}`}
+                      className="ch-historyItem"
+                    >
+                      <div className="ch-historyTop">
+                        <div className="ch-historyTitle">{h?.description}</div>
+                        <div className={`ch-historyStatus ${statusCls}`}>
+                          {status === "SUCCESS"
+                            ? "성공"
+                            : status === "FAILED"
+                            ? "실패"
+                            : status}
+                        </div>
+                      </div>
+
+                      <div className="ch-historyMeta">
+                        <div>카테고리: {h?.category || "전체"}</div>
+                        <div>구분: {fmtType(h?.type)}</div>
+                        <div>기간: {h?.duration}일</div>
+                        {h?.targetCount ? (
+                          <div>목표: {h?.targetCount}회 이하</div>
+                        ) : (
+                          <div>
+                            목표:{" "}
+                            {(h?.target || 0).toLocaleString?.() || h?.target}원
+                            이하
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="ch-historyDate">
+                        시작날짜({parseDate(h?.startDate)}) ~ 종료날짜(
+                        {parseDate(h?.endDate)})
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            <div className="ch-actions">
+              <button className="ch-btn primary" onClick={closeHistory}>
+                닫기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
-
-
-//실전용 (api 호출)
-// import React, { useEffect, useMemo, useState } from "react";
-// import "./ChallengePage.css";
-// import "./MyPage.css";
-// import { challengeApi } from "../../../api/challengeApi.js";
-// import { useAuth } from "../../../context/AuthContext";
-
-// export default function ChallengePage() {
-//   const { user } = useAuth();
-
-//   const displayName = useMemo(() => {
-//     return (
-//       user?.nickName ||
-//       user?.nickname ||
-//       user?.userName ||
-//       user?.loginId ||
-//       "회원"
-//     );
-//   }, [user]);
-
-//   const [challengeMode, setChallengeMode] = useState("PERSONAL");
-//   const [list, setList] = useState([]);
-//   const [isLoading, setIsLoading] = useState(true);
-//   const [errorMsg, setErrorMsg] = useState("");
-
-//   // 참여 모달
-//   const [isJoinOpen, setIsJoinOpen] = useState(false);
-//   const [selected, setSelected] = useState(null);
-//   const [joinForm, setJoinForm] = useState({ startDate: "", endDate: "" });
-//   const [joinMsg, setJoinMsg] = useState("");
-
-//   // ✅ 참여 완료된 챌린지 상태 저장 (버튼/기간 표시용)
-//   const [joinedMap, setJoinedMap] = useState({});
-
-//   const normalizeList = (data) => {
-//     if (Array.isArray(data)) return data;
-//     if (Array.isArray(data?.list)) return data.list;
-//     if (Array.isArray(data?.data)) return data.data;
-//     if (Array.isArray(data?.result)) return data.result;
-//     return [];
-//   };
-
-//   const fetchChallenges = async () => {
-//     setIsLoading(true);
-//     setErrorMsg("");
-//     try {
-//       const data = await challengeApi.list({ challengeMode });
-//       setList(normalizeList(data));
-//     } catch (err) {
-//       console.error(err);
-//       setList([]);
-//       setErrorMsg("챌린지 목록 조회 실패");
-//     } finally {
-//       setIsLoading(false);
-//     }
-//   };
-
-//   useEffect(() => {
-//     fetchChallenges();
-//   }, [challengeMode]);
-
-//   const get = (obj, ...keys) => {
-//     for (const k of keys) {
-//       if (obj && obj[k] != null) return obj[k];
-//     }
-//     return null;
-//   };
-
-//   const fmtType = (type) => {
-//     switch (type) {
-//       case "EXPENSE":
-//         return "지출";
-//       case "INCOME":
-//         return "수입";
-//       default:
-//         return type;
-//     }
-//   };
-
-//   const fmtDays = (days) => `${days}일`;
-
-//   const toYMD = (d) => {
-//     const yyyy = d.getFullYear();
-//     const mm = String(d.getMonth() + 1).padStart(2, "0");
-//     const dd = String(d.getDate()).padStart(2, "0");
-//     return `${yyyy}-${mm}-${dd}`;
-//   };
-
-//   const addDays = (ymd, add) => {
-//     const d = new Date(ymd);
-//     d.setDate(d.getDate() + add);
-//     return toYMD(d);
-//   };
-
-//   // startDate 기준으로 상태 결정 (표시용)
-//   const calcJoinLabel = (startDate) => {
-//     const today = toYMD(new Date());
-//     return startDate > today ? "참여 예정" : "진행중";
-//   };
-
-//   const openJoin = (challenge) => {
-//     const duration = Number(challenge?.duration || 0);
-//     const today = toYMD(new Date());
-//     const end = duration > 0 ? addDays(today, duration - 1) : today;
-
-//     setSelected(challenge);
-//     setJoinForm({ startDate: today, endDate: end });
-//     setJoinMsg("");
-//     setIsJoinOpen(true);
-//   };
-
-//   const closeJoin = () => {
-//     setIsJoinOpen(false);
-//     setSelected(null);
-//     setJoinMsg("");
-//   };
-
-//   // ✅ 실전용: 서버 호출해서 참여 등록
-//   const submitJoin = async () => {
-//     if (!user?.userId) {
-//       alert("로그인이 필요함");
-//       return;
-//     }
-//     if (!selected?.challengeId) {
-//       alert("challengeId가 없음 (목록 데이터 확인 필요)");
-//       return;
-//     }
-//     if (!joinForm.startDate || !joinForm.endDate) {
-//       setJoinMsg("시작일/종료일을 입력해야 함");
-//       return;
-//     }
-
-//     // 프론트 1차 검증: 기간이 duration과 맞는지
-//     const duration = Number(selected?.duration || 0);
-//     if (duration > 0) {
-//       const s = new Date(joinForm.startDate);
-//       const e = new Date(joinForm.endDate);
-//       const days = Math.floor((e - s) / (1000 * 60 * 60 * 24)) + 1;
-//       if (days !== duration) {
-//         setJoinMsg(`기간은 ${duration}일로 맞춰야 함`);
-//         return;
-//       }
-//     }
-
-//     try {
-//       setJoinMsg("");
-
-//       // ✅ 서버 호출
-//       const res = await challengeApi.join({
-//         userId: user.userId,
-//         challengeId: selected.challengeId,
-//         startDate: joinForm.startDate,
-//         endDate: joinForm.endDate,
-//       });
-
-//       // ✅ 서버 응답에 값이 있으면 우선 사용, 없으면 내가 보낸 값 사용
-//       const startDate =
-//         res?.startDate || res?.data?.startDate || joinForm.startDate;
-//       const endDate = res?.endDate || res?.data?.endDate || joinForm.endDate;
-
-//       // 서버가 status를 주면 그걸 쓰고, 없으면 계산해서 넣음
-//       const serverStatus = res?.status || res?.data?.status;
-//       const computedLabel = calcJoinLabel(startDate);
-//       const status =
-//         serverStatus ||
-//         (computedLabel === "참여 예정" ? "RESERVED" : "PROCEEDING");
-
-//       // ✅ UI 반영
-//       setJoinedMap((prev) => ({
-//         ...prev,
-//         [selected.challengeId]: { startDate, endDate, status },
-//       }));
-
-//       closeJoin();
-//     } catch (e) {
-//       console.error(e);
-//       const msg =
-//         e?.response?.data?.message ||
-//         e?.message ||
-//         "챌린지 참여 실패";
-//       setJoinMsg(msg);
-//       // 실패면 joinedMap에 안 들어가니까 자동으로 "참여하기" 유지됨
-//     }
-//   };
-
-//   return (
-//     <main className="challenge-page">
-//       <div className="challenge-header">
-//         <h2>챌린지</h2>
-//         <p>{displayName} 님, 목표를 정하고 재미있게 절약/관리하는 곳</p>
-
-//         <div className="challenge-tab">
-//           <button
-//             className={challengeMode === "PERSONAL" ? "active" : ""}
-//             onClick={() => setChallengeMode("PERSONAL")}
-//           >
-//             개인 챌린지
-//           </button>
-//           <button
-//             className={challengeMode === "GROUP" ? "active" : ""}
-//             onClick={() => setChallengeMode("GROUP")}
-//           >
-//             그룹 챌린지
-//           </button>
-//         </div>
-//       </div>
-
-//       <div className="challenge-list-wrapper">
-//         <section className="challenge-list">
-//           {isLoading && <p>불러오는 중...</p>}
-//           {errorMsg && <p className="error">{errorMsg}</p>}
-
-//           {list.map((c) => {
-//             const id = get(c, "challengeId", "challenge_id", "id", "_id", "ID");
-//             const desc = get(c, "description", "desc", "title", "name");
-//             const category = get(c, "category");
-//             const type = get(c, "type");
-//             const duration = get(c, "duration", "days");
-
-//             const normalized = {
-//               challengeId: id,
-//               description: desc,
-//               category,
-//               type,
-//               duration: Number(duration || 0),
-//               raw: c,
-//             };
-
-//             const joined = joinedMap?.[id];
-//             const joinBtnText = joined
-//               ? calcJoinLabel(joined.startDate)
-//               : "참여하기";
-
-//             const periodText = joined
-//               ? `시작날짜(${joined.startDate}) ~ 종료날짜(${joined.endDate})`
-//               : "";
-
-//             return (
-//               <article
-//                 key={String(id) + desc}
-//                 className={`challenge-list-item ${
-//                   challengeMode === "GROUP" ? "group" : "personal"
-//                 }`}
-//               >
-//                 <div className="challenge-item-left">
-//                   <div className="challenge-title">{desc}</div>
-
-//                   <div className="challenge-info">
-//                     <span>카테고리: {category || "전체"}</span>
-//                     <span>구분: {fmtType(type)}</span>
-//                     <span>기간: {fmtDays(duration)}</span>
-//                   </div>
-
-//                   {joined && (
-//                     <div className="challenge-period-left">{periodText}</div>
-//                   )}
-//                 </div>
-
-//                 <div className="challenge-item-right">
-//                   <button
-//                     type="button"
-//                     className={`challenge-join-btn ${joined ? "joined" : ""}`}
-//                     onClick={() => openJoin(normalized)}
-//                     disabled={!!joined}
-//                     title={joined ? "이미 참여한 챌린지" : "참여하기"}
-//                   >
-//                     {joinBtnText}
-//                   </button>
-//                 </div>
-//               </article>
-//             );
-//           })}
-//         </section>
-//       </div>
-
-//       {isJoinOpen && (
-//         <div className="ch-modalOverlay" onMouseDown={closeJoin}>
-//           <div className="ch-modal" onMouseDown={(e) => e.stopPropagation()}>
-//             <div className="ch-modalHeader">
-//               <h3>챌린지 참여</h3>
-//               <button className="ch-x" onClick={closeJoin}>
-//                 ×
-//               </button>
-//             </div>
-
-//             <div className="ch-modalBody">
-//               <div className="ch-row">
-//                 <span className="ch-k">챌린지 ID</span>
-//                 <span className="ch-v">{selected?.challengeId}</span>
-//               </div>
-//               <div className="ch-row">
-//                 <span className="ch-k">내용</span>
-//                 <span className="ch-v">{selected?.description}</span>
-//               </div>
-//               <div className="ch-row">
-//                 <span className="ch-k">기간</span>
-//                 <span className="ch-v">{fmtDays(selected?.duration)}</span>
-//               </div>
-
-//               <div className="ch-form">
-//                 <label className="ch-label">
-//                   시작일
-//                   <input
-//                     type="date"
-//                     value={joinForm.startDate}
-//                     onChange={(e) => {
-//                       const startDate = e.target.value;
-//                       const duration = Number(selected?.duration || 0);
-//                       const endDate =
-//                         duration > 0
-//                           ? addDays(startDate, duration - 1)
-//                           : joinForm.endDate;
-//                       setJoinForm((p) => ({ ...p, startDate, endDate }));
-//                       setJoinMsg("");
-//                     }}
-//                   />
-//                 </label>
-
-//                 <label className="ch-label">
-//                   종료일
-//                   <input
-//                     type="date"
-//                     value={joinForm.endDate}
-//                     onChange={(e) => {
-//                       setJoinForm((p) => ({ ...p, endDate: e.target.value }));
-//                       setJoinMsg("");
-//                     }}
-//                   />
-//                 </label>
-//               </div>
-
-//               {joinMsg && <p className="ch-msg">{joinMsg}</p>}
-//             </div>
-
-//             <div className="ch-modalFooter">
-//               <button className="ch-btn ghost" onClick={closeJoin}>
-//                 취소
-//               </button>
-//               <button className="ch-btn primary" onClick={submitJoin}>
-//                 참여 확정
-//               </button>
-//             </div>
-//           </div>
-//         </div>
-//       )}
-//     </main>
-//   );
-// }
 
