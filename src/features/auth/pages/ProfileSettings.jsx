@@ -235,6 +235,17 @@ function ProfileSettings() {
       return;
     }
 
+    const formData = new FormData();
+    formData.append("loginId", loginId);
+    formData.append("nickName", (nickName || "").trim());
+    formData.append("userName", (userName || "").trim() || "");
+    formData.append("email", (email || "").trim().toLowerCase());
+    formData.append("status", user?.status || "");
+
+    if (uploadFile) {
+      formData.append("profileImage", uploadFile); 
+    }
+
     const mePayload = {
       loginId,
       nickName: (nickName || "").trim(),
@@ -244,12 +255,7 @@ function ProfileSettings() {
     };
 
     if (uploadFile) {
-      const onlyImageChange = !hasProfileChanges && !hasEmailChanges && !hasPasswordChanges;
-      if (onlyImageChange) {
-        alert("프로필 이미지 업로드는 백엔드 multipart 처리가 필요해서 아직 저장 불가함");
-        return;
-      }
-      alert("프로필 이미지 업로드는 아직 서버 미지원이라 이번 저장에서는 반영 안됨");
+      formData.append("profileImage", uploadFile);
     }
 
     setIsSaving(true);
@@ -258,17 +264,23 @@ function ProfileSettings() {
     try {
       let updatedUser = null;
 
-      const res = await userApi.updateMe(mePayload);
+      const res = await userApi.updateMe(formData);
       const serverMessage = res?.message; // 서버 message 사용
 
-      updatedUser = res?.user || res;
+      let updatedUserFromServer = res?.user || res;
 
-      if (!updatedUser || typeof updatedUser !== "object") {
-        updatedUser = { ...(user || {}), ...mePayload };
+      if (!updatedUserFromServer || typeof updatedUserFromServer !== "object") {
+        updatedUserFromServer = { ...(user || {}), ...mePayload };
       }
 
-      setUser(updatedUser);
-      localStorage.setItem("user", JSON.stringify(updatedUser));
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+        setPreviewUrl(""); 
+      }
+      setUploadFile(null);
+
+      setUser(updatedUserFromServer);
+      localStorage.setItem("user", JSON.stringify(updatedUserFromServer));
 
       if (isPasswordEditing) {
         await userApi.changePassword({ currentPassword, newPassword });
@@ -352,7 +364,9 @@ function ProfileSettings() {
   // 상단 프로필 표시는 "입력값(draft)"이 아니라 "서버 저장값(initial)"만
   const displayName = (initial.displayName || "회원").trim();
   const displayEmail = (initial.email || "").trim();
-  const serverAvatarUrl = user?.changeName || "";
+  const serverAvatarUrl = user?.changeName 
+    ? `http://localhost:8080/osori/upload/profiles/${user.changeName}` 
+    : "";
 
   // 탈퇴 버튼 활성화 조건
   const canWithdraw = withdrawChecked && withdrawPassword.trim().length > 0 && !isWithdrawing;
