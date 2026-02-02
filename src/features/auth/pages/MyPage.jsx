@@ -24,6 +24,9 @@ const MyPage = () => {
   const [transactions, setTransactions] = useState([]);
   const { notifications, setNotifications } = useAlarmSocket(user?.loginId);
   const [isNotiOpen, setIsNotiOpen] = useState(false);
+  const serverAvatarUrl = user?.changeName 
+    ? `http://localhost:8080/osori/upload/profiles/${user.changeName}` 
+    : "";
 
   //그룹 가계부 리스트 호출
   const fetchGroupBudgetList = async()=>{
@@ -210,7 +213,13 @@ const MyPage = () => {
       <section className="profile-fixed-card">
         <div className="info-card profile-main">
           <div className="profile-section">
-            <div className="profile-img">👤</div>
+              <div className="profile-img ps-avatar">
+                {serverAvatarUrl ? (
+                  <img src={serverAvatarUrl} alt="프로필" />
+                ) : (
+                  <span aria-hidden>👤</span>
+                )}
+              </div>
             <div className="profile-details">
               <h3>{displayName}</h3>
               <p>{email}</p>
