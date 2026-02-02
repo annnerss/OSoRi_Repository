@@ -24,7 +24,26 @@ const MyPage = () => {
   const [transactions, setTransactions] = useState([]);
   const { notifications, setNotifications } = useAlarmSocket(user?.loginId);
   const [isNotiOpen, setIsNotiOpen] = useState(false);
-  const { groupBudgetList, isLoading: isGroupLoading, fetchGroupBudgetList } = useGroupBudgets(user?.userId);
+  const serverAvatarUrl = user?.changeName 
+    ? `http://localhost:8080/osori/upload/profiles/${user.changeName}` 
+    : "";
+
+  //그룹 가계부 리스트 호출
+  const fetchGroupBudgetList = async()=>{
+      if (!user?.userId) return;
+      setIsLoading(true);
+      try{
+        const data = await groupBudgetApi.groupBudgetList(user?.userId);
+
+        setGroupBudgetList(data);
+      }catch(error){
+        console.error('그룹가계부 목록 조회 실패',error);
+        alert('그룹가계부 목록을 조회할 수 없습니다.');
+        navigate('/mypage');    
+      }finally{
+        setIsLoading(false);
+      }
+  }
 
   //안읽은 알림 목록 조회
   const fetchNotiList = async(loginId)=>{
@@ -179,7 +198,13 @@ const MyPage = () => {
       <section className="profile-fixed-card">
         <div className="info-card profile-main">
           <div className="profile-section">
-            <div className="profile-img">👤</div>
+              <div className="profile-img ps-avatar">
+                {serverAvatarUrl ? (
+                  <img src={serverAvatarUrl} alt="프로필" />
+                ) : (
+                  <span aria-hidden>👤</span>
+                )}
+              </div>
             <div className="profile-details">
               <h3>{displayName}</h3>
               <p>{email}</p>

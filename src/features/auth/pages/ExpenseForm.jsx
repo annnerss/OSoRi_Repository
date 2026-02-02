@@ -36,6 +36,15 @@ const ExpenseForm = ({ mode = 'personal', groupId, groupStart, groupEnd }) => {
     return `${year}-${month}-${day}`;
   };
 
+const [individualAmounts, setIndividualAmounts] = useState({}); 
+
+const handleAmountInput = (userId, value) => {
+  setIndividualAmounts(prev => ({
+    ...prev,
+    [userId]: value
+  }));
+};
+
   const [formData, setFormData] = useState({
     type: '지출',
     transDate: '',
@@ -120,7 +129,12 @@ const ExpenseForm = ({ mode = 'personal', groupId, groupStart, groupEnd }) => {
   const handleMemberToggle = (member) => {
     setSelectedMemList(prev => {
       const isSelected = prev.some(m => m.userId === member.userId);
-      if (isSelected) return prev.filter(m => m.userId !== member.userId);
+      if (isSelected) {
+        const newAmounts = { ...individualAmounts };
+        delete newAmounts[member.userId];
+        setIndividualAmounts(newAmounts);
+        return prev.filter(m => m.userId !== member.userId);
+      }
       return [...prev, member];
     });
   };
@@ -287,6 +301,7 @@ const ExpenseForm = ({ mode = 'personal', groupId, groupStart, groupEnd }) => {
 
       if (mode === 'group') {
         if (!groupId) return;
+        
         await transApi.groupTransSave({ 
           ...formData, 
           userId: user?.userId, 
@@ -296,22 +311,44 @@ const ExpenseForm = ({ mode = 'personal', groupId, groupStart, groupEnd }) => {
         });
         
         if (isSplitActive && selectedMemList.length > 0) {
-          const totalPeople = selectedMemList.length + 1;
-          const splitAmount = Math.floor(Number(formData.originalAmount) / totalPeople);
-          const allMemberIds = [...selectedMemList.map(m => m.userId), user?.userId];
+        const defaultSplitAmount = Math.floor(Number(formData.originalAmount) / (selectedMemList.length + 1));
+  
+         let totalOthersAmount = 0; 
 
-          const splitPromises = allMemberIds.map(targetId => {
+        const splitPromises = selectedMemList.map(mem => {
+          const finalAmount = individualAmounts[mem.userId] 
+            ? Number(individualAmounts[mem.userId]) 
+            : defaultSplitAmount;
+
+          totalOthersAmount += finalAmount;
+
             return transApi.myTransSave({
               ...formData,
               title: `[👨‍👩‍👧‍👦그룹분할] ${formData.title}`,
-              originalAmount: splitAmount,
-              userId: targetId,
+              originalAmount: finalAmount, 
+              userId: mem.userId,
               type: transType,
               isShared: 'Y',
               groupTransId: Number(groupId),
-              memo: `${user?.nickName || user?.nickname || '멤버'}님이 등록한 그룹 지출 분할`
+              memo: `${user?.nickName}님이 등록한 지출 분할`
             });
           });
+
+          const myFinalAmount = Number(formData.originalAmount) - totalOthersAmount;
+
+          if (myFinalAmount >= 0) {
+            splitPromises.push(transApi.myTransSave({
+              ...formData,
+              title: `[👨‍👩‍👧‍👦그룹분할] ${formData.title}`,
+              originalAmount: myFinalAmount,
+              userId: user?.userId,
+              type: transType,
+              isShared: 'Y',
+              groupTransId: Number(groupId),
+              memo: `그룹 지출 정산`
+            }));
+          }
+
           await Promise.all(splitPromises);
         }
       } else {
@@ -322,7 +359,7 @@ const ExpenseForm = ({ mode = 'personal', groupId, groupStart, groupEnd }) => {
     } catch (error) { alert("저장 중 오류 발생"); }
   };
 
-  return (
+   return (
     <div className="expense-page-wrapper">
       <div className="expense-card">
         {isLoading && (
@@ -398,30 +435,69 @@ const ExpenseForm = ({ mode = 'personal', groupId, groupStart, groupEnd }) => {
                 <input type="checkbox" id="splitActive" checked={isSplitActive} onChange={(e) => setIsSplitActive(e.target.checked)} />
                 <label htmlFor="splitActive" className="split-toggle-label">나눌 멤버 추가하기</label>
               </div>
+
               {isSplitActive && (
                 <>
                   <div className="member-list-grid">
-                    {memList.length > 0 ? memList.map((mem) => (
-                      <label key={mem.userId} className="member-item-label">
-                        <input 
-                          type="checkbox" 
-                          checked={selectedMemList.some(m => m.userId === mem.userId)}
-                          onChange={() => handleMemberToggle(mem)} 
-                        />
-                        <span className="member-nickname">{mem.nickName}</span>
-                      </label>
-                    )) : <p className="no-member-text">그룹에 다른 멤버가 없습니다.</p>}
+                    {memList.length > 0 ? memList.map((mem) => {
+                      const isSelected = selectedMemList.some(m => m.userId === mem.userId);
+                      return (
+                        <div key={mem.userId} className="member-split-row">
+                          <label className="member-item-label">
+                            <input type="checkbox" checked={isSelected} onChange={() => handleMemberToggle(mem)} />
+                            <span className="member-nickname">{mem.nickName}</span>
+                          </label>
+                          
+                          {isSelected && (
+                            <div className="split-input-group">
+                              <span className="suggested-amount">(기본: {splitResult.amount.toLocaleString()}원)</span>
+                              <input 
+                                type="number" 
+                                placeholder="직접 입력"
+                                className="input-field small"
+                                value={individualAmounts[mem.userId] || ''} 
+                                onChange={(e) => handleAmountInput(mem.userId, e.target.value)}
+                              />
+                              <span style={{ fontSize: '0.9rem' }}>원</span>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    }) : <p className="no-member-text">그룹에 다른 멤버가 없습니다.</p>}
                   </div>
+
                   {formData.originalAmount > 0 && (
                     <div className="split-result-box">
-                      <p className="split-result-info">총 <strong>{splitResult.count}명</strong> 분할 (본인 포함)</p>
-                      <h4 className="split-result-amount">1인당 부담금: <strong>{splitResult.amount.toLocaleString()}원</strong></h4>
+                      <div className="split-summary-row">
+                        <span>총 인원</span>
+                        <span>{selectedMemList.length + 1}명 (본인 포함)</span>
+                      </div>
+                      <div className="split-summary-row">
+                        <span>멤버 합계</span>
+                        <span>
+                          {selectedMemList.reduce((acc, mem) => 
+                            acc + (individualAmounts[mem.userId] ? Number(individualAmounts[mem.userId]) : splitResult.amount), 0
+                          ).toLocaleString()} 원
+                        </span>
+                      </div>
+                      
+                      <div className="my-final-amount-row">
+                        <span className="my-final-label">본인 부담금 (잔액)</span>
+                        <span className="my-final-price">
+                          {(Number(formData.originalAmount) - selectedMemList.reduce((acc, mem) => 
+                            acc + (individualAmounts[mem.userId] ? Number(individualAmounts[mem.userId]) : splitResult.amount), 0
+                          )).toLocaleString()}원
+                        </span>
+                      </div>
+                      <p className="split-guide-text">* 박스가 비어있으면 기본 가이드 금액이 적용됩니다.</p>
                     </div>
                   )}
                 </>
               )}
             </div>
           )}
+
+
           <button type="submit" className={`submit-btn ${formData.type === '지출' ? 'expense-mode' : ''}`}>
             {formData.type === '수입' ? '수입 등록하기' : '지출 등록하기'}
           </button>

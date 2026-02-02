@@ -27,12 +27,13 @@
   margin: 0;
 }
 
-.account-detail{
-  min-height: 100px;
-  height : auto;
-  display:flex;
-  justify-content: flex-start;
+.account-detail {
+  flex: 1;
+  display: flex;
   flex-direction: column;
+  justify-content: center;
+  align-items: center;   
+  text-align: center;
 }
 
 .menu-item {
@@ -215,13 +216,16 @@
 
 .info-card {
   max-height: 400px;
-  height : 85%;
+  height: 85%;
   background: white;
   padding: 30px;
   border-radius: 24px;
   max-height: 400px;
   overflow-y: auto;
   box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .profile-section {
@@ -230,15 +234,25 @@
   gap: 20px;
 }
 
-.profile-img {
-  width: 80px;
+.profile-img.ps-avatar {
+  width: 80px;     
   height: 80px;
-  background: #eef2ff;
   border-radius: 50%;
+  overflow: hidden; 
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 2rem;
+  background: #eef2ff;
+  border: 1px solid #e0e6ed;
+  padding: 0;   
+}
+
+.profile-img.ps-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;  
+  object-position: center;
+  display: block;
 }
 
 .stat-box {
