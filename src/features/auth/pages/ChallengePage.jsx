@@ -155,13 +155,27 @@ export default function ChallengePage() {
     }
   };
 
+  // ChallengePage.jsx 내 loadMyJoined 함수
+
+  // ChallengePage.jsx
+
   const loadMyJoined = async (mode) => {
     if (!user?.userId) return;
+    
     try {
-      const data = await challengeApi.myJoinedList({
-        userId: user.userId,
-        challengeMode: mode,
-      });
+      let data;
+      if (mode === "GROUP") {
+        // ✅ 그룹 모드: /challenges/myJoinedList 호출 (가계부 ID 기준)
+        if (!selectedGroupId) return;
+        data = await challengeApi.groupJoinedList(selectedGroupId);
+      } else {
+        // ✅ 개인 모드: /challenges/mychallenges 호출 (기존 로직)
+        data = await challengeApi.myJoinedList({
+          userId: user.userId,
+          challengeMode: mode,
+        });
+      }
+
       const arr = normalizeList(data);
       const map = {};
       arr.forEach((row) => {
@@ -175,9 +189,33 @@ export default function ChallengePage() {
       });
       setJoinedMap(map);
     } catch (e) {
-      // 실패해도 화면은 떠야 하니 무시
+      console.error("참여 목록 로드 실패", e);
     }
   };
+
+  // const loadMyJoined = async (mode) => {
+  //   if (!user?.userId) return;
+  //   try {
+  //     const data = await challengeApi.myJoinedList({
+  //       userId: user.userId,
+  //       challengeMode: mode,
+  //     });
+  //     const arr = normalizeList(data);
+  //     const map = {};
+  //     arr.forEach((row) => {
+  //       const id = row?.challengeId || row?.challenge_id;
+  //       if (!id) return;
+  //       map[id] = {
+  //         status: row?.status,
+  //         startDate: parseDate(row?.startDate),
+  //         endDate: parseDate(row?.endDate),
+  //       };
+  //     });
+  //     setJoinedMap(map);
+  //   } catch (e) {
+  //     // 실패해도 화면은 떠야 하니 무시
+  //   }
+  // };
 
 
   // 그룹가계부
@@ -272,31 +310,79 @@ export default function ChallengePage() {
 
 // ChallengePage.jsx
 
-const confirmJoin = async () => {
-  if (!selected || !user?.userId) return;
+  const confirmJoin = async () => {
+    if (!selected || !user?.userId) return;
 
-  try {
-    // 1. 서버에 참여 요청
-    const res = await challengeApi.join({
-      userId: user.userId,
-      challengeId: selected.challengeId,
-      startDate: joinForm.startDate,
-      endDate: joinForm.endDate,
-    });
+    // 그룹 모드인데 가계부가 선택되지 않은 경우 방어 로직
+    if (challengeMode === "GROUP" && !selectedGroupId) {
+      setJoinMsg("대상 그룹 가계부를 선택해주세요.");
+      return;
+    }
 
-    setJoinMsg(pickMessage(res));
+    try {
+      let res;
 
-    // 2. ✅ 서버의 스케줄러가 상태를 바꿀 시간을 조금 더 줍니다 (1.5초)
-    // 그 후 내 참여 목록을 다시 불러와서 'FAILED' 혹은 'PROCEEDING' 상태를 UI에 반영합니다.
-    setTimeout(async () => {
-      await loadMyJoined(challengeMode); // 서버에서 최신 상태 다시 조회
-      closeJoin();
-    }, 1500); 
+      if (challengeMode === "GROUP") {
+        // ✅ [분기 1] 그룹 챌린지 참여 호출
+        // groupChall 테이블 등록을 위해 groupbId를 반드시 포함합니다.
+        res = await challengeApi.joinGroup({
+          userId: user.userId,
+          challengeId: selected.challengeId,
+          groupbId: selectedGroupId,
+          startDate: joinForm.startDate,
+          endDate: joinForm.endDate,
+        });
+        console.log("그룹 챌린지 등록 프로세스 시작 (groupChall)", res);
+      } else {
+        // ✅ [분기 2] 개인 챌린지 참여 호출
+        res = await challengeApi.join({
+          userId: user.userId,
+          challengeId: selected.challengeId,
+          startDate: joinForm.startDate,
+          endDate: joinForm.endDate,
+        });
+        console.log("개인 챌린지 등록 프로세스 시작", res);
+      }
 
-  } catch (e) {
-    setJoinMsg(pickErrorMessage(e));
-  }
-};
+      setJoinMsg(pickMessage(res));
+
+      // 2. 상태 업데이트를 위해 목록 재조회 및 모달 닫기
+      setTimeout(async () => {
+        await loadMyJoined(challengeMode); 
+        closeJoin();
+      }, 1500); 
+
+    } catch (e) {
+      console.error("참여 처리 중 에러 발생:", e);
+      setJoinMsg(pickErrorMessage(e));
+    }
+  };
+
+// const confirmJoin = async () => {
+//   if (!selected || !user?.userId) return;
+
+//   try {
+//     // 1. 서버에 참여 요청
+//     const res = await challengeApi.join({
+//       userId: user.userId,
+//       challengeId: selected.challengeId,
+//       startDate: joinForm.startDate,
+//       endDate: joinForm.endDate,
+//     });
+
+//     setJoinMsg(pickMessage(res));
+
+//     // 2. ✅ 서버의 스케줄러가 상태를 바꿀 시간을 조금 더 줍니다 (1.5초)
+//     // 그 후 내 참여 목록을 다시 불러와서 'FAILED' 혹은 'PROCEEDING' 상태를 UI에 반영합니다.
+//     setTimeout(async () => {
+//       await loadMyJoined(challengeMode); // 서버에서 최신 상태 다시 조회
+//       closeJoin();
+//     }, 1500); 
+
+//   } catch (e) {
+//     setJoinMsg(pickErrorMessage(e));
+//   }
+// };
 
   // getJoinLabel 함수 보강
   const getJoinLabel = (challengeId) => {
