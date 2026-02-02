@@ -38,6 +38,7 @@ export default function ChallengePage() {
   const [errorMsg, setErrorMsg] = useState("");
   const { groupBudgetList = [], isLoading: isGroupLoading } = useGroupBudgets(user?.userId);
   const [selectedGroupId, setSelectedGroupId] = useState(null);
+  const [rankings, setRankings] = useState({});
 
   // 참여 모달
   const [isJoinOpen, setIsJoinOpen] = useState(false);
@@ -109,26 +110,48 @@ export default function ChallengePage() {
     setJoinMsg("");
   };
 
+  // src/features/auth/pages/ChallengePage.jsx 내 95라인 근처 openHistory 함수
+
   const openHistory = async () => {
     if (!user?.userId) {
       setHistoryMsg("로그인이 필요함");
       setIsHistoryOpen(true);
       return;
     }
+
+    // ✅ 그룹 모드인데 선택된 가계부가 없는 경우 방어
+    if (challengeMode === "GROUP" && !selectedGroupId) {
+      setHistoryMsg("조회할 그룹 가계부를 선택해주세요.");
+      setIsHistoryOpen(true);
+      return;
+    }
+
+    setHistoryList([]);
     setHistoryMsg("");
     setIsHistoryOpen(true);
 
     try {
-      const data = await challengeApi.myPastJoinedList({
-        userId: user.userId,
-        challengeMode,
-      });
+      let data;
+      if (challengeMode === "GROUP") {
+        // ✅ 그룹용 지난 챌린지 API 호출 (가계부 ID 전달)
+        // challengeApi.js에 groupPastJoinedList 메서드가 있어야 합니다.
+        data = await challengeApi.groupPastJoinedList(selectedGroupId); 
+      } else {
+        // 기존 개인 챌린지 로직
+        data = await challengeApi.myPastJoinedList({
+          userId: user.userId,
+          challengeMode,
+        });
+      }
+      
       setHistoryList(normalizeList(data));
     } catch (e) {
       setHistoryMsg(e?.message || "지난 챌린지 목록을 불러오지 못했음");
       setHistoryList([]);
     }
   };
+
+  
 
   const closeHistory = () => {
     setIsHistoryOpen(false);
@@ -158,52 +181,60 @@ export default function ChallengePage() {
 
   // ChallengePage.jsx
 
-  const loadMyJoined = async (mode) => {
-    if (!user?.userId) return;
-    
-    // ✅ 1. 가계부 전환 시 이전 데이터 잔상을 확실히 지우기 위해 초기화
-    setJoinedMap({});
-    
-    try {
-      let data;
-      if (mode === "GROUP") {
-        // ✅ 2. 그룹 모드일 때 선택된 가계부 ID가 없으면 실행 중단
-        if (!selectedGroupId) return;
-        
-        // API 호출 시 selectedGroupId를 확실히 전달 (서버의 SELECT WHERE 절에 사용됨)
-        data = await challengeApi.groupJoinedList(selectedGroupId); 
-      } else {
-        // 개인 모드 기존 로직 유지
-        data = await challengeApi.myJoinedList({
-          userId: user.userId,
-          challengeMode: mode,
-        });
-      }
+  // src/features/auth/pages/ChallengePage.jsx
 
-      const arr = normalizeList(data);
-      const map = {};
-      
-      arr.forEach((row) => {
-        // ✅ 3. 서버 응답 객체의 challengeId 필드명 확인 (Java DTO와 매칭)
-        const id = row?.challengeId || row?.challenge_id;
-        if (!id) return;
-
-        // ✅ 4. 현재 선택된 가계부 ID와 일치하는 데이터만 맵에 저장 (프론트 2차 검증)
-        // 서버에서 이미 필터링해서 주겠지만, 안전을 위해 로직 추가 가능
-        if (mode === "GROUP" && String(row?.groupbId) !== String(selectedGroupId)) return;
-
-        map[id] = {
-          status: row?.status, // DB에 저장된 'PROCEEDING' 등
-          startDate: parseDate(row?.startDate),
-          endDate: parseDate(row?.endDate),
-        };
+const loadMyJoined = async (mode) => {
+  if (!user?.userId) return;
+  
+  // 1. 초기화
+  setJoinedMap({});
+  
+  try {
+    let data;
+    if (mode === "GROUP") {
+      if (!selectedGroupId) return;
+      // ✅ API 호출 (Controller의 /myJoinedList 매핑 확인)
+      data = await challengeApi.groupJoinedList(selectedGroupId); 
+    } else {
+      data = await challengeApi.myJoinedList({
+        userId: user.userId,
+        challengeMode: mode,
       });
-
-      setJoinedMap(map);
-    } catch (e) {
-      console.error("참여 목록 로드 실패", e);
     }
-  };
+
+    const arr = normalizeList(data);
+    const map = {};
+    
+    arr.forEach((row) => {
+      // ✅ 2. ID 추출 (문자열 타입인 group_zero_challenge 등을 대응)
+      const id = row?.challengeId || row?.challenge_id;
+      if (!id) return;
+
+      // ✅ 3. 날짜 및 상태 저장
+      map[String(id)] = {
+        status: row?.status,
+        // 백엔드 필드명이 startDate인지 start_date인지 확인하여 매핑
+        startDate: parseDate(row?.startDate || row?.start_date),
+        endDate: parseDate(row?.endDate || row?.end_date),
+      };
+    });
+
+    setJoinedMap(map);
+    console.log("최종 구성된 joinedMap:", map);
+  } catch (e) {
+    console.error("참여 목록 로드 실패", e);
+  }
+};
+
+//적게 지출하기 챌린지 실시간 순위 로직
+const loadRanking = async (challengeId) => {
+  try {
+    const data = await challengeApi.getGroupRanking(selectedGroupId, challengeId);
+    setRankings(prev => ({ ...prev, [challengeId]: data }));
+  } catch (e) {
+    console.error("순위 로드 실패", e);
+  }
+};
 
   // const loadMyJoined = async (mode) => {
   //   if (!user?.userId) return;
@@ -518,7 +549,7 @@ useEffect(() => {
               const target = c?.target;
               const targetCount = c?.targetCount ?? c?.target_count;
 
-              const j = joinedMap[id];
+              const j = joinedMap[String(id)];
               const startDate = j?.startDate;
               const endDate = j?.endDate;
 
@@ -551,7 +582,7 @@ useEffect(() => {
                     </div>
                     <div className="cp-metaRow">
                       <span className="cp-k">기간</span>
-                      <span className="cp-v">{duration}일</span>
+                      <span className="cp-v">{duration === 0 ? "전체" : `${duration}일`}</span>
                     </div>
 
                     {targetCount ? (
@@ -589,6 +620,32 @@ useEffect(() => {
                       {getJoinLabel(id)}
                     </button>
                   </div>
+
+                    {/* 적게 지출하기 실시간 순위 */}
+                  {j?.status === "PROCEEDING" && (
+                  <div className="cp-ranking-section" style={{ marginTop: '15px', borderTop: '1px dashed #eee', paddingTop: '10px' }}>
+                    <button 
+                      onClick={() => loadRanking(id)}
+                      style={{ fontSize: '12px', color: '#4A90E2', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                    >
+                      🏆 실시간 순위 보기
+                    </button>
+                    
+                    {rankings[id] && (
+                      <ul style={{ listStyle: 'none', padding: '10px 0', margin: 0 }}>
+                        {rankings[id].slice(0, 3).map((rk, idx) => (
+                          <li key={rk.userId} style={{ fontSize: '13px', marginBottom: '4px', display: 'flex', justifyContent: 'space-between' }}>
+                            <span>{idx + 1}위. {rk.nickname}</span>
+                            <span style={{ fontWeight: 'bold' }}>{rk.totalAmount.toLocaleString()}원</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                )}
+
+
+
                 </article>
               );
             })}

@@ -59,7 +59,22 @@ export const challengeApi = {
       params: { groupbId }
     });
     return response.data;
-  }
+  },
+
+  groupPastJoinedList: async (groupbId) => {
+    // 백엔드 컨트롤러에 정의한 매핑 주소와 일치해야 합니다.
+    const response = await api.get(`/challenges/group/past`, {
+      params: { groupbId }
+    });
+    return response.data;
+  },
+
+  getGroupRanking: async (groupbId, challengeId) => {
+    const response = await api.get('/challenges/group/ranking', {
+      params: { groupbId, challengeId }
+    });
+    return response.data;
+  },
 
 
 };
