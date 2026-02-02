@@ -162,14 +162,20 @@ export default function ChallengePage() {
   const loadMyJoined = async (mode) => {
     if (!user?.userId) return;
     
+    // ✅ 1. 가계부 전환 시 이전 데이터 잔상을 확실히 지우기 위해 초기화
+    setJoinedMap({});
+    
     try {
       let data;
       if (mode === "GROUP") {
-        // ✅ 그룹 모드: /challenges/myJoinedList 호출 (가계부 ID 기준)
+        // ✅ 2. 그룹 모드일 때 선택된 가계부 ID가 없으면 실행 중단
         if (!selectedGroupId) return;
-        data = await challengeApi.groupJoinedList(selectedGroupId);
+        
+        console.log(`[Request] ${selectedGroupId}번 가계부의 참여 목록 요청`);
+        // API 호출 시 selectedGroupId를 확실히 전달 (서버의 SELECT WHERE 절에 사용됨)
+        data = await challengeApi.groupJoinedList(selectedGroupId); 
       } else {
-        // ✅ 개인 모드: /challenges/mychallenges 호출 (기존 로직)
+        // 개인 모드 기존 로직 유지
         data = await challengeApi.myJoinedList({
           userId: user.userId,
           challengeMode: mode,
@@ -178,15 +184,24 @@ export default function ChallengePage() {
 
       const arr = normalizeList(data);
       const map = {};
+      
       arr.forEach((row) => {
+        // ✅ 3. 서버 응답 객체의 challengeId 필드명 확인 (Java DTO와 매칭)
         const id = row?.challengeId || row?.challenge_id;
         if (!id) return;
+
+        // ✅ 4. 현재 선택된 가계부 ID와 일치하는 데이터만 맵에 저장 (프론트 2차 검증)
+        // 서버에서 이미 필터링해서 주겠지만, 안전을 위해 로직 추가 가능
+        if (mode === "GROUP" && String(row?.groupbId) !== String(selectedGroupId)) return;
+
         map[id] = {
-          status: row?.status,
+          status: row?.status, // DB에 저장된 'PROCEEDING' 등
           startDate: parseDate(row?.startDate),
           endDate: parseDate(row?.endDate),
         };
       });
+
+      console.log(`[Result] ${selectedGroupId}번 가계부 세팅된 joinedMap:`, map);
       setJoinedMap(map);
     } catch (e) {
       console.error("참여 목록 로드 실패", e);
@@ -255,13 +270,32 @@ export default function ChallengePage() {
     }
   }, [challengeMode, user?.userId]);
 
+  //그룹챌린지 탭 클릭 시 기본으로 첫번째 가계부 띄워주기
   useEffect(() => {
-    // 그룹 모드이고, 그룹 리스트는 있는데, 아직 선택된 ID가 없다면?
-    if (challengeMode === "GROUP" && groupBudgetList.length > 0 && !selectedGroupId) {
-      // console.log("자동으로 첫 번째 그룹 선택:", groupBudgetList[0].groupbId); // 디버깅용
-      setSelectedGroupId(groupBudgetList[0].groupbId);
+  // 그룹 모드이고, 가계부 리스트는 있는데, 아직 선택된 ID가 없다면 실행
+  if (challengeMode === "GROUP" && groupBudgetList.length > 0 && !selectedGroupId) {
+      // 첫 번째 가계부의 ID 추출 (DB 필드명에 따라 groupbId 또는 id 확인)
+      const firstId = groupBudgetList[0].groupbId || groupBudgetList[0].group_id;
+      if (firstId) {
+        setSelectedGroupId(firstId);
+      }
     }
-  }, [groupBudgetList, challengeMode, selectedGroupId]);
+  }, [challengeMode, groupBudgetList, selectedGroupId]);
+
+  // ChallengePage.jsx 내 useEffect 부분
+useEffect(() => {
+  if (challengeMode === "GROUP") {
+    if (selectedGroupId) {
+      // 선택된 가계부가 있을 때만 해당 가계부의 참여 목록을 가져옴
+      loadMyJoined("GROUP"); 
+    } else {
+      // 선택된 가계부가 없으면 참여 정보를 초기화하여 겹침 방지
+      setJoinedMap({});
+    }
+  } else {
+    loadMyJoined("PERSONAL");
+  }
+}, [challengeMode, selectedGroupId, user?.userId]); // selectedGroupId가 바뀔 때마다 실행
 
   console.log("챌린지 목록 첫 번째 항목:", list[0]);
   console.log("챌린지 목록 두 번째 항목:", list[1]);
