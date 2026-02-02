@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css'; 
 import './CalendarView.css'; 
+import { useNavigate } from 'react-router-dom';
 
 function CalendarView({ currentDate, setCurrentDate }) {
   const { user } = useAuth();
@@ -11,6 +12,7 @@ function CalendarView({ currentDate, setCurrentDate }) {
   const [transactions, setTransactions] = useState([]); 
   const [activeLedgers, setActiveLedgers] = useState([]); 
   const [selectedDate, setSelectedDate] = useState(new Date().toLocaleDateString('en-CA'));
+  const navigate = useNavigate();
 
   const userId = user?.userId || 3; 
 
@@ -126,6 +128,19 @@ function CalendarView({ currentDate, setCurrentDate }) {
     return null;
   };
 
+  const handleLedgerClick = (ledgers) => {
+  // 예: 개인 가계부면 '/personal', 그룹이면 '/group/123' 형태
+  if (ledgers === 'personal') {
+    navigate("/mypage/myAccountBook"); 
+  } else {
+    // 그룹 가계부: 알려주신 pathname과 search 형식을 적용합니다.
+    navigate({
+      pathname: "/mypage/groupAccountBook",
+      search: `?groupId=${groupinfo.groupbId}`,
+    });
+  }
+};
+
   return (
     <main className="fade-in">
       <div className="calendar-page-container">
@@ -176,9 +191,6 @@ function CalendarView({ currentDate, setCurrentDate }) {
                 flexDirection: 'column' 
               }}
             />
-            {/* 주석 */}
-
-            
           </div>
 
           <div className="detail-card" style={{ flex: 3 }}>
@@ -191,7 +203,7 @@ function CalendarView({ currentDate, setCurrentDate }) {
                     return (
                       <li key={idx} className="detail-item" style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #eee' }}>
                         <div>
-                          <span className="ledger-badge" style={{ backgroundColor: ledger?.color, color: '#fff', padding: '2px 5px', borderRadius: '4px', fontSize: '12px' }}>{ledger?.name}</span>
+                          <span className="ledger-badge" style={{ backgroundColor: ledger?.color, color: '#fff', padding: '2px 5px', borderRadius: '4px', fontSize: '12px', cursor: 'pointer' }} onClick={() => handleLedgerClick(item.ledgerId)}>{ledger?.name}</span>
                           <div style={{ fontWeight: 'bold' }}>{item.title}</div>
                           <div style={{ fontSize: '12px', color: '#888' }}>{item.category} {item.nickname && `| ${item.nickname}`}</div>
                         </div>
