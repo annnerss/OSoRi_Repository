@@ -29,9 +29,8 @@
 
 .account-detail{
   height : auto;
-  display:flex;
-  justify-content: center;
-  flex-direction: column;
+  overflow-y: auto;
+  padding: 0 30px 30px 30px;
 }
 
 .menu-item {
@@ -213,13 +212,13 @@
 }
 
 .info-card {
-  max-height: 400px;
-  height : 85%;
   background: white;
   padding: 30px;
   border-radius: 24px;
   max-height: 400px;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   box-shadow: 0 4px 20px rgba(0,0,0,0.03);
 }
 
@@ -254,8 +253,7 @@
   animation: fadeIn 0.3s ease-in-out;
 }
 
-.logout-btn {
-  margin-top: auto; /* 사이드바 맨 아래로 배치 */
+.logout-btn{
   padding: 15px;
   background: none;
   border: none;
@@ -331,6 +329,97 @@
   font-size : 1rem;
   color : #666;
   font-weight: 600;
+}
+
+/*질문봇 영역*/
+.faq-container {
+  position: fixed; 
+  bottom: 20px;
+  left: 20px; 
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; 
+  z-index: 999;
+}
+
+.qBot {
+  width: 50px;
+  height: 50px;
+  cursor: pointer;
+}
+
+.faq-dropdown{
+  position:relative;
+  margin-bottom: 20px;
+  background: white;
+  border-radius: 24px;
+  border:3px solid #0066ff;
+  width: 250px;
+  display: flex;
+  flex-direction: column;
+  max-height: 350px; 
+}
+
+.faq-dropdown::after {
+  content: '';
+  position: absolute;
+  bottom: -15px;
+  left: 30px; 
+  border-width: 15px 12px 0;
+  border-style: solid;
+  border-color: #0066ff transparent transparent;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  display: block;
+  z-index: 10;
+}
+
+.faq-chat-area {
+  max-height: 400px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 15px;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.faq-chat-area::-webkit-scrollbar { display: none; }
+
+.chat-row { display: flex; width: 100%; margin-bottom: 5px; }
+.chat-bubble {
+  padding: 10px 14px;
+  max-width: 70%;
+  font-size: 14px;
+  line-height: 1.4;
+  position: relative;
+}
+
+.chat-row.bot { justify-content: flex-start; }
+.chat-row.bot .chat-bubble {
+  background-color: #f1f1f1;
+  color: black;
+  border-radius: 0 15px 15px 15px;
+}
+
+.chat-row.user { justify-content: flex-end; }
+.chat-row.user .chat-bubble {
+  background-color: #0066ff;
+  color: white;
+  border-radius: 15px 15px 0 15px; 
+}
+
+.faq-item-btn {
+  width: 100%;
+  text-align: left;
+  padding: 8px 12px;
+  margin-top: 6px;
+  border: 1px solid #0066ff;
+  background: white;
+  color: #0066ff;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 13px;
 }
 
 @media (max-width: 900px) {
