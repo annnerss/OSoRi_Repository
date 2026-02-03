@@ -106,7 +106,6 @@
 
 .challenge-title {
   font-weight: 700;
-  font-size: 17px;
   margin-bottom: 8px;
   color: #111827;
 }
@@ -346,7 +345,7 @@
 }
 
 .challenge-wrap {
-  padding: 26px 28px;
+  padding: 0px;
 }
 
 .challenge-head {
@@ -356,7 +355,7 @@
 .challenge-title {
   font-size: 26px;
   font-weight: 900;
-  margin: 0;
+  margin: 23px 0 23px 0;
 }
 
 .challenge-sub {
@@ -695,6 +694,12 @@
   margin-top: 6px;
   color: #64748b;
   font-size: 13px;
+}
+
+
+
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
 }
 
 

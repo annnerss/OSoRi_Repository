@@ -1,6 +1,11 @@
 /*pretendard 글꼴*/
 @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
 
+.content-header {
+  padding:30px;
+  padding-top:0px;
+}
+
 .calender-title {
     display: flex;             /* 한 줄로 배치 */
     justify-content: space-between; /* 양 끝으로 밀어내기 */

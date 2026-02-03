@@ -423,351 +423,358 @@ const loadRanking = async (challengeId) => {
   };
 
   return (
-    <div className="challenge-wrap">
-      <div className="challenge-head">
-        <h2 className="challenge-title">챌린지</h2>
-        <div className="challenge-sub">
-          {displayName} 님, 목표를 정하고 재밌게 절약/관리하는 곳
-        </div>
-
-        <div className="challenge-tab">
-          <button
-            className={`challenge-tabBtn ${
-              challengeMode === "PERSONAL" ? "active" : ""
-            }`}
-            onClick={() => setChallengeMode("PERSONAL")}
-          >
-            개인 챌린지
-          </button>
-          <button
-            className={`challenge-tabBtn ${
-              challengeMode === "GROUP" ? "active" : ""
-            }`}
-            onClick={() => setChallengeMode("GROUP")}
-          >
-            그룹 챌린지
-          </button>
-
-          <button
-            type="button"
-            className="challenge-tabBtn challenge-history-btn"
-            onClick={openHistory}
-          >
-            지난 챌린지
-          </button>
-        </div>
-      </div>
-
-      <div className="challenge-body">
-        {isLoading && <div className="challenge-empty">불러오는 중...</div>}
-        {!isLoading && errorMsg && (
-          <div className="challenge-empty">{errorMsg}</div>
-        )}
-        {!isLoading && !errorMsg && list?.length === 0 && (
-          <div className="challenge-empty">챌린지가 없음</div>
-        )}
-
-        {challengeMode === "GROUP" && groupBudgetList.length > 0 && (
-          <div className="group-selection-area" style={{ marginBottom: '20px', padding: '10px' }}>
-            <p style={{ fontSize: '14px', marginBottom: '8px', color: '#666' }}>대상 그룹 가계부 선택:</p>
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              {groupBudgetList.map((gb) => (
-                <button
-                  key={gb.groupbId}
-                  onClick={() => setSelectedGroupId(gb.groupbId)}
-                  style={{
-                    padding: '6px 12px',
-                    borderRadius: '20px',
-                    border: '1px solid #ddd',
-                    backgroundColor: selectedGroupId === gb.groupbId ? '#2c3e50' : '#fff',
-                    color: selectedGroupId === gb.groupbId ? '#fff' : '#333',
-                    cursor: 'pointer'
-                  }}
-                >
-                  {gb.title}
-                </button>
-              ))}
+    <main className="fade-in">
+      <div className="content-header">
+        <div className="challenge-wrap">
+          <div className="challenge-head">
+            <h2 className="challenge-title">챌린지</h2>
+      
+            <div className="challenge-sub">
+              {displayName} 님, 목표를 정하고 재밌게 절약/관리하는 곳
             </div>
+            </div>
+            </div>
+          
+
+          <div className="challenge-tab">
+            <button
+              className={`challenge-tabBtn ${
+                challengeMode === "PERSONAL" ? "active" : ""
+              }`}
+              onClick={() => setChallengeMode("PERSONAL")}
+            >
+              개인 챌린지
+            </button>
+            <button
+              className={`challenge-tabBtn ${
+                challengeMode === "GROUP" ? "active" : ""
+              }`}
+              onClick={() => setChallengeMode("GROUP")}
+            >
+              그룹 챌린지
+            </button>
+
+            <button
+              type="button"
+              className="challenge-tabBtn challenge-history-btn"
+              onClick={openHistory}
+            >
+              지난 챌린지
+            </button>
           </div>
-        )}
+        
 
-       
+        <div className="challenge-body">
+          {isLoading && <div className="challenge-empty">불러오는 중...</div>}
+          {!isLoading && errorMsg && (
+            <div className="challenge-empty">{errorMsg}</div>
+          )}
+          {!isLoading && !errorMsg && list?.length === 0 && (
+            <div className="challenge-empty">챌린지가 없음</div>
+          )}
 
-        {!isLoading && !errorMsg && filteredList?.length > 0 && (
-          <div className="challenge-list">
-            {filteredList.map((c) => {
-              const id = c?.challengeId ?? c?.challenge_id;
-              const desc = c?.description ?? c?.desc;
-              const category = c?.category;
-              const type = c?.type;
-              const duration = c?.duration;
-              const target = c?.target;
-              const targetCount = c?.targetCount ?? c?.target_count;
+          {challengeMode === "GROUP" && groupBudgetList.length > 0 && (
+            <div className="group-selection-area" style={{ marginBottom: '20px', padding: '10px' }}>
+              <p style={{ fontSize: '14px', marginBottom: '8px', color: '#666' }}>대상 그룹 가계부 선택:</p>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                {groupBudgetList.map((gb) => (
+                  <button
+                    key={gb.groupbId}
+                    onClick={() => setSelectedGroupId(gb.groupbId)}
+                    style={{
+                      padding: '6px 12px',
+                      borderRadius: '20px',
+                      border: '1px solid #ddd',
+                      backgroundColor: selectedGroupId === gb.groupbId ? '#2c3e50' : '#fff',
+                      color: selectedGroupId === gb.groupbId ? '#fff' : '#333',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {gb.title}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
-              const j = joinedMap[String(id)];
-              const startDate = j?.startDate;
-              const endDate = j?.endDate;
+        
 
-              return (
-                <article key={String(id) + desc} className="cp-card">
-                  <div className="cp-cardTop">
-                    <div className="cp-badge">{fmtMode(challengeMode)}</div>
-                    <div className="cp-id">{id}</div>
-                  </div>
-                  <p>
-                    {challengeMode === "GROUP" && selectedGroupId && (
-                      <span style={{ fontSize: '11px', color: '#4A90E2', fontWeight: 'bold' }}>
-                        [ {groupBudgetList.find(g => String(g.groupbId || g.id) === String(selectedGroupId))?.title || "선택된 가계부"} ] 대상
-                      </span>
-                    )}
-                  </p>
+          {!isLoading && !errorMsg && filteredList?.length > 0 && (
+            <div className="challenge-list">
+              {filteredList.map((c) => {
+                const id = c?.challengeId ?? c?.challenge_id;
+                const desc = c?.description ?? c?.desc;
+                const category = c?.category;
+                const type = c?.type;
+                const duration = c?.duration;
+                const target = c?.target;
+                const targetCount = c?.targetCount ?? c?.target_count;
 
+                const j = joinedMap[String(id)];
+                const startDate = j?.startDate;
+                const endDate = j?.endDate;
 
-                  <div className="cp-desc">{desc}</div>
-
-                  <div className="cp-meta">
-                    <div className="cp-metaRow">
-                      <span className="cp-k">카테고리</span>
-                      <span className="cp-v">{category || "전체"}</span>
+                return (
+                  <article key={String(id) + desc} className="cp-card">
+                    <div className="cp-cardTop">
+                      <div className="cp-badge">{fmtMode(challengeMode)}</div>
+                      <div className="cp-id">{id}</div>
                     </div>
-                    <div className="cp-metaRow">
-                      <span className="cp-k">구분</span>
-                      <span className="cp-v">{fmtType(type)}</span>
-                    </div>
-                    <div className="cp-metaRow">
-                      <span className="cp-k">기간</span>
-                      <span className="cp-v">{duration === 0 ? "전체" : `${duration}일`}</span>
-                    </div>
-
-                    {targetCount ? (
-                      <div className="cp-metaRow">
-                        <span className="cp-k">목표</span>
-                        <span className="cp-v">{targetCount}회 이하</span>
-                      </div>
-                    ) : (
-                      <div className="cp-metaRow">
-                        <span className="cp-k">목표</span>
-                        <span className="cp-v">
-                          {target?.toLocaleString?.() || target}원 이하
+                    <p>
+                      {challengeMode === "GROUP" && selectedGroupId && (
+                        <span style={{ fontSize: '11px', color: '#4A90E2', fontWeight: 'bold' }}>
+                          [ {groupBudgetList.find(g => String(g.groupbId || g.id) === String(selectedGroupId))?.title || "선택된 가계부"} ] 대상
                         </span>
-                      </div>
-                    )}
-                  </div>
+                      )}
+                    </p>
 
-                  {startDate && endDate && (
-                    <div className="cp-dates">
-                      <div className="cp-date">
-                        시작날짜({startDate}) ~ 종료날짜({endDate})
-                      </div>
-                    </div>
-                  )}
 
-                  <div className="cp-actions">
-                    <button
-                      className={`cp-joinBtn ${isJoined(id) ? "disabled" : ""}`}
-                      onClick={() => {
-                        if (isJoined(id)) return;
-                        openJoin(c);
-                      }}
-                      disabled={isJoined(id)}
-                    >
-                      {getJoinLabel(id)}
-                    </button>
-                  </div>
+                    <div className="cp-desc">{desc}</div>
 
-                    {/* 적게 지출하기 실시간 순위 */}
-                  {j?.status === "PROCEEDING" && id==='group_reduceZero_competition' && (
-                    <div className="cp-ranking-section" style={{
-                      marginTop: '15px',
-                      padding: '12px',
-                      backgroundColor: '#f8fbff',
-                      borderRadius: '10px',
-                      border: '1px solid #e1e9f5'
-                    }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                        <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#2c3e50' }}>
-                          🏆 실시간 그룹 순위 (지출 적은 순)
-                        </span>
-                        <button 
-                          onClick={() => loadRanking(id)}
-                          style={{ fontSize: '11px', color: '#4A90E2', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
-                        >
-                          새로고침 ↻
-                        </button>
+                    <div className="cp-meta">
+                      <div className="cp-metaRow">
+                        <span className="cp-k">카테고리</span>
+                        <span className="cp-v">{category || "전체"}</span>
                       </div>
-                      
-                      {rankings[id] && rankings[id].length > 0 ? (
-                        <div className="cp-ranking-list">
-                          {rankings[id].slice(0, 3).map((rk, idx) => {
-                            const isFirst = idx === 0;
-                            return (
-                              <div key={rk.userId} style={{
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'center',
-                                padding: '8px 10px',
-                                marginBottom: '4px',
-                                backgroundColor: isFirst ? '#fff' : 'rgba(255,255,255,0.5)',
-                                borderRadius: '8px',
-                                boxShadow: isFirst ? '0 2px 4px rgba(0,0,0,0.05)' : 'none',
-                                border: isFirst ? '1px solid #ffeaa7' : '1px solid #eee'
-                              }}>
-                                <span style={{ fontSize: '13px', color: isFirst ? '#d35400' : '#333', fontWeight: isFirst ? 'bold' : 'normal' }}>
-                                  {isFirst ? '🥇 ' : `${idx + 1}위. `}
-                                  {rk.nickname} {String(rk.userId) === String(user?.userId) && <small style={{color:'#999'}}>(나)</small>}
-                                </span>
-                                <span style={{ fontSize: '13px', fontWeight: 'bold', color: isFirst ? '#e67e22' : '#555' }}>
-                                  {Number(rk.totalAmount).toLocaleString()}원
-                                </span>
-                              </div>
-                            );
-                          })}
+                      <div className="cp-metaRow">
+                        <span className="cp-k">구분</span>
+                        <span className="cp-v">{fmtType(type)}</span>
+                      </div>
+                      <div className="cp-metaRow">
+                        <span className="cp-k">기간</span>
+                        <span className="cp-v">{duration === 0 ? "전체" : `${duration}일`}</span>
+                      </div>
+
+                      {targetCount ? (
+                        <div className="cp-metaRow">
+                          <span className="cp-k">목표</span>
+                          <span className="cp-v">{targetCount}회 이하</span>
                         </div>
                       ) : (
-                        <div style={{ fontSize: '12px', color: '#999', textAlign: 'center', padding: '10px' }}>
-                          아직 집계된 지출 내역이 없습니다.
+                        <div className="cp-metaRow">
+                          <span className="cp-k">목표</span>
+                          <span className="cp-v">
+                            {target?.toLocaleString?.() || target}원 이하
+                          </span>
                         </div>
                       )}
                     </div>
-                  )}
 
-
-
-                </article>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
-      {/* 참여 모달 */}
-      {isJoinOpen && selected && (
-        <div className="ch-modalOverlay" onClick={closeJoin}>
-          <div className="ch-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="ch-modalTitle">챌린지 참여</div>
-            <div className="ch-modalDesc">
-              <div className="ch-modalDescStrong">{selected?.description}</div>
-              <div className="ch-modalDescSub">기간 {selected?.duration}일</div>
-            </div>
-
-            <div className="ch-form">
-              <div className="ch-field">
-                <label>시작일</label>
-                <input
-                  type="date"
-                  name="startDate"
-                  value={joinForm.startDate}
-                  onChange={(e) => {
-                    handleChange(e);
-                    const v = e.target.value;
-                    const end = calcEndDate(v, selected?.duration || 1);
-                    setJoinForm((prev) => ({
-                      ...prev,
-                      startDate: v,
-                      endDate: end,
-                    }));
-                  }}
-                />
-              </div>
-              <div className="ch-field">
-                <label>종료일</label>
-                <input
-                  type="date"
-                  name="endDate"
-                  value={joinForm.endDate}
-                  onChange={handleChange}
-                />
-              </div>
-            </div>
-
-            {joinMsg && <div className="ch-msg">{joinMsg}</div>}
-
-            <div className="ch-actions">
-              <button className="ch-btn ghost" onClick={closeJoin}>
-                취소
-              </button>
-              <button className="ch-btn primary" onClick={confirmJoin}>
-                참여 확정
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {isHistoryOpen && (
-        <div className="ch-modalOverlay" onClick={closeHistory}>
-          <div
-            className="ch-modal ch-modal--history"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="ch-modalTitle">지난 챌린지</div>
-
-            {historyMsg && <div className="ch-msg">{historyMsg}</div>}
-
-            {!historyMsg && historyList?.length === 0 && (
-              <div className="challenge-empty">지난 챌린지가 없음</div>
-            )}
-
-            {!historyMsg && historyList?.length > 0 && (
-              <div className="ch-historyList">
-                {historyList.map((h) => {
-                  const status = h?.status;
-                  const statusCls =
-                    status === "SUCCESS"
-                      ? "success"
-                      : status === "FAILED"
-                      ? "failed"
-                      : "";
-                  return (
-                    <div
-                      key={`${h?.challengeId}-${h?.startDate}-${h?.endDate}`}
-                      className="ch-historyItem"
-                    >
-                      <div className="ch-historyTop">
-                        <div className="ch-historyTitle">{h?.description}</div>
-                        <div className={`ch-historyStatus ${statusCls}`}>
-                          {status === "SUCCESS"
-                            ? "성공"
-                            : status === "FAILED"
-                            ? "실패"
-                            : status}
+                    {startDate && endDate && (
+                      <div className="cp-dates">
+                        <div className="cp-date">
+                          시작날짜({startDate}) ~ 종료날짜({endDate})
                         </div>
                       </div>
+                    )}
 
-                      <div className="ch-historyMeta">
-                        <div>카테고리: {h?.category || "전체"}</div>
-                        <div>구분: {fmtType(h?.type)}</div>
-                        <div>기간: {h?.duration}일</div>
-                        {h?.targetCount ? (
-                          <div>목표: {h?.targetCount}회 이하</div>
+                    <div className="cp-actions">
+                      <button
+                        className={`cp-joinBtn ${isJoined(id) ? "disabled" : ""}`}
+                        onClick={() => {
+                          if (isJoined(id)) return;
+                          openJoin(c);
+                        }}
+                        disabled={isJoined(id)}
+                      >
+                        {getJoinLabel(id)}
+                      </button>
+                    </div>
+
+                      {/* 적게 지출하기 실시간 순위 */}
+                    {j?.status === "PROCEEDING" && id==='group_reduceZero_competition' && (
+                      <div className="cp-ranking-section" style={{
+                        marginTop: '15px',
+                        padding: '12px',
+                        backgroundColor: '#f8fbff',
+                        borderRadius: '10px',
+                        border: '1px solid #e1e9f5'
+                      }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                          <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#2c3e50' }}>
+                            🏆 실시간 그룹 순위 (지출 적은 순)
+                          </span>
+                          <button 
+                            onClick={() => loadRanking(id)}
+                            style={{ fontSize: '11px', color: '#4A90E2', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
+                          >
+                            새로고침 ↻
+                          </button>
+                        </div>
+                        
+                        {rankings[id] && rankings[id].length > 0 ? (
+                          <div className="cp-ranking-list">
+                            {rankings[id].slice(0, 3).map((rk, idx) => {
+                              const isFirst = idx === 0;
+                              return (
+                                <div key={rk.userId} style={{
+                                  display: 'flex',
+                                  justifyContent: 'space-between',
+                                  alignItems: 'center',
+                                  padding: '8px 10px',
+                                  marginBottom: '4px',
+                                  backgroundColor: isFirst ? '#fff' : 'rgba(255,255,255,0.5)',
+                                  borderRadius: '8px',
+                                  boxShadow: isFirst ? '0 2px 4px rgba(0,0,0,0.05)' : 'none',
+                                  border: isFirst ? '1px solid #ffeaa7' : '1px solid #eee'
+                                }}>
+                                  <span style={{ fontSize: '13px', color: isFirst ? '#d35400' : '#333', fontWeight: isFirst ? 'bold' : 'normal' }}>
+                                    {isFirst ? '🥇 ' : `${idx + 1}위. `}
+                                    {rk.nickname} {String(rk.userId) === String(user?.userId) && <small style={{color:'#999'}}>(나)</small>}
+                                  </span>
+                                  <span style={{ fontSize: '13px', fontWeight: 'bold', color: isFirst ? '#e67e22' : '#555' }}>
+                                    {Number(rk.totalAmount).toLocaleString()}원
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
                         ) : (
-                          <div>
-                            목표:{" "}
-                            {(h?.target || 0).toLocaleString?.() || h?.target}원
-                            이하
+                          <div style={{ fontSize: '12px', color: '#999', textAlign: 'center', padding: '10px' }}>
+                            아직 집계된 지출 내역이 없습니다.
                           </div>
                         )}
                       </div>
+                    )}
 
-                      <div className="ch-historyDate">
-                        시작날짜({parseDate(h?.startDate)}) ~ 종료날짜(
-                        {parseDate(h?.endDate)})
-                      </div>
-                    </div>
-                  );
-                })}
+
+
+                  </article>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* 참여 모달 */}
+        {isJoinOpen && selected && (
+          <div className="ch-modalOverlay" onClick={closeJoin}>
+            <div className="ch-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="ch-modalTitle">챌린지 참여</div>
+              <div className="ch-modalDesc">
+                <div className="ch-modalDescStrong">{selected?.description}</div>
+                <div className="ch-modalDescSub">기간 {selected?.duration}일</div>
               </div>
-            )}
 
-            <div className="ch-actions">
-              <button className="ch-btn primary" onClick={closeHistory}>
-                닫기
-              </button>
+              <div className="ch-form">
+                <div className="ch-field">
+                  <label>시작일</label>
+                  <input
+                    type="date"
+                    name="startDate"
+                    value={joinForm.startDate}
+                    onChange={(e) => {
+                      handleChange(e);
+                      const v = e.target.value;
+                      const end = calcEndDate(v, selected?.duration || 1);
+                      setJoinForm((prev) => ({
+                        ...prev,
+                        startDate: v,
+                        endDate: end,
+                      }));
+                    }}
+                  />
+                </div>
+                <div className="ch-field">
+                  <label>종료일</label>
+                  <input
+                    type="date"
+                    name="endDate"
+                    value={joinForm.endDate}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+
+              {joinMsg && <div className="ch-msg">{joinMsg}</div>}
+
+              <div className="ch-actions">
+                <button className="ch-btn ghost" onClick={closeJoin}>
+                  취소
+                </button>
+                <button className="ch-btn primary" onClick={confirmJoin}>
+                  참여 확정
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+
+        {isHistoryOpen && (
+          <div className="ch-modalOverlay" onClick={closeHistory}>
+            <div
+              className="ch-modal ch-modal--history"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="ch-modalTitle">지난 챌린지</div>
+
+              {historyMsg && <div className="ch-msg">{historyMsg}</div>}
+
+              {!historyMsg && historyList?.length === 0 && (
+                <div className="challenge-empty">지난 챌린지가 없음</div>
+              )}
+
+              {!historyMsg && historyList?.length > 0 && (
+                <div className="ch-historyList">
+                  {historyList.map((h) => {
+                    const status = h?.status;
+                    const statusCls =
+                      status === "SUCCESS"
+                        ? "success"
+                        : status === "FAILED"
+                        ? "failed"
+                        : "";
+                    return (
+                      <div
+                        key={`${h?.challengeId}-${h?.startDate}-${h?.endDate}`}
+                        className="ch-historyItem"
+                      >
+                        <div className="ch-historyTop">
+                          <div className="ch-historyTitle">{h?.description}</div>
+                          <div className={`ch-historyStatus ${statusCls}`}>
+                            {status === "SUCCESS"
+                              ? "성공"
+                              : status === "FAILED"
+                              ? "실패"
+                              : status}
+                          </div>
+                        </div>
+
+                        <div className="ch-historyMeta">
+                          <div>카테고리: {h?.category || "전체"}</div>
+                          <div>구분: {fmtType(h?.type)}</div>
+                          <div>기간: {h?.duration}일</div>
+                          {h?.targetCount ? (
+                            <div>목표: {h?.targetCount}회 이하</div>
+                          ) : (
+                            <div>
+                              목표:{" "}
+                              {(h?.target || 0).toLocaleString?.() || h?.target}원
+                              이하
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="ch-historyDate">
+                          시작날짜({parseDate(h?.startDate)}) ~ 종료날짜(
+                          {parseDate(h?.endDate)})
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              <div className="ch-actions">
+                <button className="ch-btn primary" onClick={closeHistory}>
+                  닫기
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </main>
   );
 }
 
