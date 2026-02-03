@@ -71,27 +71,13 @@ export default function FixedTransPage() {
         <p className="welcome-text">{displayName} 님 고정지출 관리하는 곳</p>
       </header>
 
-      {/* 상단 요약 카드 */}
-      <section className="profile-fixed-card">
-        <div className="info-card profile-main" style={{ justifyContent: "space-between" }}>
-          <div className="profile-section">
-            <div className="profile-img">📌</div>
-            <div className="profile-details">
-              <h3>고정지출</h3>
-              
-            </div>
-          </div>
-
+      {/* 목록 */}
+      <div className="account-book-grid">
+        <div className="info-card" style={{ gridColumn: "1 / -1", paddingTop:'10px'}}>
           <button type="button" className="ftAddBtn" onClick={openCreate}>
             <span className="ftAddIcon" aria-hidden="true">＋</span>
             <span>고정지출 추가</span>
           </button>
-        </div>
-      </section>
-
-      {/* 목록 */}
-      <div className="account-book-grid">
-        <div className="info-card" style={{ gridColumn: "1 / -1" }}>
           <div className="card-title-area" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <h3>📄 내 고정지출 목록</h3>
             <span className="status-dot">{list.length}개</span>
