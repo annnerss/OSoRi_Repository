@@ -1,6 +1,4 @@
 
-// src/features/auth/pages/ChallengePage.jsx
-
 import React, { useEffect, useMemo, useState } from "react";
 import "./ChallengePage.css";
 import "./MyPage.css";
@@ -46,10 +44,8 @@ export default function ChallengePage() {
   const [joinForm, setJoinForm] = useState({ startDate: "", endDate: "" });
   const [joinMsg, setJoinMsg] = useState("");
 
-  // ✅ 참여 완료된 챌린지 상태 저장 (버튼/기간 표시용)
   const [joinedMap, setJoinedMap] = useState({});
 
-  // ✅ 지난 챌린지 모달
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [historyList, setHistoryList] = useState([]);
   const [historyMsg, setHistoryMsg] = useState("");
@@ -119,7 +115,6 @@ export default function ChallengePage() {
       return;
     }
 
-    // ✅ 그룹 모드인데 선택된 가계부가 없는 경우 방어
     if (challengeMode === "GROUP" && !selectedGroupId) {
       setHistoryMsg("조회할 그룹 가계부를 선택해주세요.");
       setIsHistoryOpen(true);
@@ -133,8 +128,6 @@ export default function ChallengePage() {
     try {
       let data;
       if (challengeMode === "GROUP") {
-        // ✅ 그룹용 지난 챌린지 API 호출 (가계부 ID 전달)
-        // challengeApi.js에 groupPastJoinedList 메서드가 있어야 합니다.
         data = await challengeApi.groupPastJoinedList(selectedGroupId); 
       } else {
         // 기존 개인 챌린지 로직
@@ -177,23 +170,15 @@ export default function ChallengePage() {
     }
   };
 
-  // ChallengePage.jsx 내 loadMyJoined 함수
-
-  // ChallengePage.jsx
-
-  // src/features/auth/pages/ChallengePage.jsx
-
 const loadMyJoined = async (mode) => {
   if (!user?.userId) return;
   
-  // 1. 초기화
   setJoinedMap({});
   
   try {
     let data;
     if (mode === "GROUP") {
       if (!selectedGroupId) return;
-      // ✅ API 호출 (Controller의 /myJoinedList 매핑 확인)
       data = await challengeApi.groupJoinedList(selectedGroupId); 
     } else {
       data = await challengeApi.myJoinedList({
@@ -206,14 +191,11 @@ const loadMyJoined = async (mode) => {
     const map = {};
     
     arr.forEach((row) => {
-      // ✅ 2. ID 추출 (문자열 타입인 group_zero_challenge 등을 대응)
       const id = row?.challengeId || row?.challenge_id;
       if (!id) return;
 
-      // ✅ 3. 날짜 및 상태 저장
       map[String(id)] = {
         status: row?.status,
-        // 백엔드 필드명이 startDate인지 start_date인지 확인하여 매핑
         startDate: parseDate(row?.startDate || row?.start_date),
         endDate: parseDate(row?.endDate || row?.end_date),
       };
@@ -273,22 +255,13 @@ const loadRanking = async (challengeId) => {
 
 
   // 그룹가계부
-  // ❌ 기존 로직: selectedGroupId가 null이면 아무것도 안 나옴
-  // ✅ 수정 로직: 그룹 모드일 때, ID가 있으면 필터링하고 없으면 전체를 보여주거나 첫 번째 그룹으로 유도
-
   const filteredList = useMemo(() => {
   if (challengeMode === "GROUP") {
-    // 1. 선택된 가계부 ID가 없으면 아무것도 안 보여줌
     if (!selectedGroupId) return []; 
 
     return list.filter(c => {
-      // 💡 현재 로그상 데이터에 groupbId가 없으므로, 
-      // 만약 데이터에 ID가 없다면 '모든 가계부 공용'으로 간주하여 true를 반환하거나
-      // 실제 데이터의 필드명을 다시 확인해야 합니다.
       const challengeGroupId = c.groupbId || c.group_id || c.groupId;
-      
-      // 만약 데이터에 그룹 정보가 아예 없다면(null/undefined), 
-      // 일단 모든 가계부에서 보이도록 설정하여 화면 노출을 확인합니다.
+    
       if (challengeGroupId === undefined || challengeGroupId === null) return true;
       
       return String(challengeGroupId) === String(selectedGroupId);
@@ -330,27 +303,12 @@ const loadRanking = async (challengeId) => {
   useEffect(() => {
     if (challengeMode === "GROUP" && selectedGroupId && Object.keys(joinedMap).length > 0) {
       Object.keys(joinedMap).forEach((id) => {
-        // 해당 챌린지의 상태가 '진행중(PROCEEDING)'인 경우에만 순위 정보를 가져옴
         if (joinedMap[id]?.status === "PROCEEDING") {
           loadRanking(id);
         }
       });
     }
   }, [joinedMap, challengeMode, selectedGroupId]);
-
-
-
-  // const getJoinLabel = (challengeId) => {
-  //   const j = joinedMap[challengeId];
-  //   if (!j) return "참여하기";
-  //   if (j.status === "RESERVED") return "참여 예정";
-  //   if (j.status === "PROCEEDING") return "진행중";
-  //   if (j.status === "SUCCESS") return "성공";
-  //   if (j.status === "FAILED") return "실패";
-  //   return "참여중";
-  // };
-
-  // const isJoined = (challengeId) => !!joinedMap[challengeId];
 
   const pickMessage = (res) => {
     if (res == null) return "참여 완료";
@@ -377,14 +335,8 @@ const loadRanking = async (challengeId) => {
     );
   };
 
-  // ChallengePage.jsx 수정안
-
-// ChallengePage.jsx
-
   const confirmJoin = async () => {
     if (!selected || !user?.userId) return;
-
-    // 그룹 모드인데 가계부가 선택되지 않은 경우 방어 로직
     if (challengeMode === "GROUP" && !selectedGroupId) {
       setJoinMsg("대상 그룹 가계부를 선택해주세요.");
       return;
@@ -394,8 +346,6 @@ const loadRanking = async (challengeId) => {
       let res;
 
       if (challengeMode === "GROUP") {
-        // ✅ [분기 1] 그룹 챌린지 참여 호출
-        // groupChall 테이블 등록을 위해 groupbId를 반드시 포함합니다.
         res = await challengeApi.joinGroup({
           userId: user.userId,
           challengeId: selected.challengeId,
@@ -404,7 +354,6 @@ const loadRanking = async (challengeId) => {
           endDate: joinForm.endDate,
         });
       } else {
-        // ✅ [분기 2] 개인 챌린지 참여 호출
         res = await challengeApi.join({
           userId: user.userId,
           challengeId: selected.challengeId,
@@ -415,7 +364,6 @@ const loadRanking = async (challengeId) => {
 
       setJoinMsg(pickMessage(res));
 
-      // 2. 상태 업데이트를 위해 목록 재조회 및 모달 닫기
       setTimeout(async () => {
         await loadMyJoined(challengeMode); 
         closeJoin();
@@ -458,23 +406,15 @@ const loadRanking = async (challengeId) => {
     const j = joinedMap[challengeId];
     // 맵에 데이터가 없으면 다시 참여 가능한 상태로 간주
     if (!j) return "참여하기"; 
-    
-    // if (j.status === "RESERVED") return "참여 예정";
-    // if (j.status === "PROCEEDING") return "진행중";
-    // if (j.status === "SUCCESS") return "성공";
-    // if (j.status === "FAILED") return "실패";
-    // return "참여중";
     switch(j.status) {
-      case "SUCCESS": return "성공(완료)"; // 성공 시 문구 변경
+      case "SUCCESS": return "성공(완료)";
       case "RESERVED": return "참여 예정";
       case "PROCEEDING": return "진행중";
-      case "FAILED": return "참여하기"; // 실패 시 재도전 허용 (원치 않으시면 SUCCESS처럼 처리)
+      case "FAILED": return "참여하기";
       default: return "참여중";
     }
   };
 
-  // isJoined 판단 로직 수정
-  // FAILED가 된 챌린지는 다시 '참여하기'가 뜨도록 하려면 status 체크가 필요합니다.
   const isJoined = (challengeId) => {
     const j = joinedMap[challengeId];
     if (!j) return false;
@@ -508,7 +448,6 @@ const loadRanking = async (challengeId) => {
             그룹 챌린지
           </button>
 
-          {/* ✅ 오른쪽에 "지난 챌린지" 버튼 추가 */}
           <button
             type="button"
             className="challenge-tabBtn challenge-history-btn"
@@ -578,7 +517,6 @@ const loadRanking = async (challengeId) => {
                   <p>
                     {challengeMode === "GROUP" && selectedGroupId && (
                       <span style={{ fontSize: '11px', color: '#4A90E2', fontWeight: 'bold' }}>
-                        {/* groupBudgetList의 요소(g)가 가진 ID 필드명을 확인하세요 (groupbId인지 id인지) */}
                         [ {groupBudgetList.find(g => String(g.groupbId || g.id) === String(selectedGroupId))?.title || "선택된 가계부"} ] 대상
                       </span>
                     )}
@@ -756,7 +694,6 @@ const loadRanking = async (challengeId) => {
         </div>
       )}
 
-      {/* ✅ 지난 챌린지 모달 */}
       {isHistoryOpen && (
         <div className="ch-modalOverlay" onClick={closeHistory}>
           <div
