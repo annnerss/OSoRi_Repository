@@ -4,10 +4,10 @@ export const authApi = {
   login: (loginId, password) =>
     apiFetch("/user/login", { method: "POST", body: { loginId, password }, auth: false }),
 
-  register: ({ loginId, password, userName, nickName, email }) =>
+  register: (data) =>
     apiFetch("/user/register", {
       method: "POST",
-      body: { loginId, password, userName, nickName, email },
+      body: data,
       auth: false,
     }),
 
@@ -47,6 +47,13 @@ export const authApi = {
     }),
 
   logout: () => apiFetch("/user/logout", { method: "POST" }), // 로그아웃
+
+  //추가
+  kakaoLogin: (code) =>
+    apiFetch(`/user/kakao/callback?code=${code}`, { 
+      method: "GET", 
+      auth: false 
+    }),
 };
 
 
