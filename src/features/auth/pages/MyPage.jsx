@@ -206,6 +206,7 @@ const MyPage = () => {
               <h3>{displayName}</h3>
               <p>{email}</p>
             </div>
+          <div className="v-line" />
           </div>
         </div>
       </section>
