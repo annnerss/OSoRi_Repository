@@ -31,9 +31,16 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;   
-  text-align: center;
+  overflow-y: auto;
+  padding-right: 5px;
+}
+
+.account-detail::-webkit-scrollbar {
+  width: 5px;
+}
+.account-detail::-webkit-scrollbar-thumb {
+  background: #eee;
+  border-radius: 10px;
 }
 
 .menu-item {
@@ -104,7 +111,12 @@
 }
 
 .noti-dropdown::-webkit-scrollbar {
-  width: 6px; /* 스크롤바 두께 */
+  width: 5px;
+}
+
+.noti-dropdown::-webkit-scrollbar-thumb {
+  background: #eee;
+  border-radius: 10px;
 }
 
 .noti-item{
@@ -215,18 +227,16 @@
 }
 
 .info-card {
+  max-height: 400px;
   height: 85%;
   background: white;
   padding: 30px;
   border-radius: 24px;
   max-height: 400px;
-  display: flex;
-  flex-direction: column;
   overflow: hidden;
   box-shadow: 0 4px 20px rgba(0,0,0,0.03);
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
 }
 
 .profile-section {
