@@ -1,14 +1,21 @@
 
-// src/features/auth/pages/ChallengePage.jsx
-
 import React, { useEffect, useMemo, useState } from "react";
 import "./ChallengePage.css";
 import "./MyPage.css";
 import { challengeApi } from "../../../api/challengeApi.js";
 import { useAuth } from "../../../context/AuthContext";
+import { useGroupBudgets } from "../../../hooks/useGroupBudgets";
+
 
 // ✅ mockData 더이상 안씀 (서버가 MYTRANS 기준으로 검증)
 // import { transactions } from "../../../Data/mockData";
+
+const getValue = (obj, ...keys) => {
+  for (const key of keys) {
+    if (obj && obj[key] !== undefined && obj[key] !== null) return obj[key];
+  }
+  return undefined;
+};
 
 export default function ChallengePage() {
   const { user } = useAuth();
@@ -27,6 +34,9 @@ export default function ChallengePage() {
   const [list, setList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
+  const { groupBudgetList = [], isLoading: isGroupLoading } = useGroupBudgets(user?.userId);
+  const [selectedGroupId, setSelectedGroupId] = useState(null);
+  const [rankings, setRankings] = useState({});
 
   // 참여 모달
   const [isJoinOpen, setIsJoinOpen] = useState(false);
@@ -34,10 +44,8 @@ export default function ChallengePage() {
   const [joinForm, setJoinForm] = useState({ startDate: "", endDate: "" });
   const [joinMsg, setJoinMsg] = useState("");
 
-  // ✅ 참여 완료된 챌린지 상태 저장 (버튼/기간 표시용)
   const [joinedMap, setJoinedMap] = useState({});
 
-  // ✅ 지난 챌린지 모달
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [historyList, setHistoryList] = useState([]);
   const [historyMsg, setHistoryMsg] = useState("");
@@ -98,26 +106,45 @@ export default function ChallengePage() {
     setJoinMsg("");
   };
 
+  // src/features/auth/pages/ChallengePage.jsx 내 95라인 근처 openHistory 함수
+
   const openHistory = async () => {
     if (!user?.userId) {
       setHistoryMsg("로그인이 필요함");
       setIsHistoryOpen(true);
       return;
     }
+
+    if (challengeMode === "GROUP" && !selectedGroupId) {
+      setHistoryMsg("조회할 그룹 가계부를 선택해주세요.");
+      setIsHistoryOpen(true);
+      return;
+    }
+
+    setHistoryList([]);
     setHistoryMsg("");
     setIsHistoryOpen(true);
 
     try {
-      const data = await challengeApi.myPastJoinedList({
-        userId: user.userId,
-        challengeMode,
-      });
+      let data;
+      if (challengeMode === "GROUP") {
+        data = await challengeApi.groupPastJoinedList(selectedGroupId); 
+      } else {
+        // 기존 개인 챌린지 로직
+        data = await challengeApi.myPastJoinedList({
+          userId: user.userId,
+          challengeMode,
+        });
+      }
+      
       setHistoryList(normalizeList(data));
     } catch (e) {
       setHistoryMsg(e?.message || "지난 챌린지 목록을 불러오지 못했음");
       setHistoryList([]);
     }
   };
+
+  
 
   const closeHistory = () => {
     setIsHistoryOpen(false);
@@ -143,47 +170,145 @@ export default function ChallengePage() {
     }
   };
 
-  const loadMyJoined = async (mode) => {
-    if (!user?.userId) return;
-    try {
-      const data = await challengeApi.myJoinedList({
+const loadMyJoined = async (mode) => {
+  if (!user?.userId) return;
+  
+  setJoinedMap({});
+  
+  try {
+    let data;
+    if (mode === "GROUP") {
+      if (!selectedGroupId) return;
+      data = await challengeApi.groupJoinedList(selectedGroupId); 
+    } else {
+      data = await challengeApi.myJoinedList({
         userId: user.userId,
         challengeMode: mode,
       });
-      const arr = normalizeList(data);
-      const map = {};
-      arr.forEach((row) => {
-        const id = row?.challengeId || row?.challenge_id;
-        if (!id) return;
-        map[id] = {
-          status: row?.status,
-          startDate: parseDate(row?.startDate),
-          endDate: parseDate(row?.endDate),
-        };
-      });
-      setJoinedMap(map);
-    } catch (e) {
-      // 실패해도 화면은 떠야 하니 무시
     }
-  };
 
-  useEffect(() => {
-    loadList(challengeMode);
-    loadMyJoined(challengeMode);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [challengeMode, user?.userId]);
+    const arr = normalizeList(data);
+    const map = {};
+    
+    arr.forEach((row) => {
+      const id = row?.challengeId || row?.challenge_id;
+      if (!id) return;
 
-  // const getJoinLabel = (challengeId) => {
-  //   const j = joinedMap[challengeId];
-  //   if (!j) return "참여하기";
-  //   if (j.status === "RESERVED") return "참여 예정";
-  //   if (j.status === "PROCEEDING") return "진행중";
-  //   if (j.status === "SUCCESS") return "성공";
-  //   if (j.status === "FAILED") return "실패";
-  //   return "참여중";
+      map[String(id)] = {
+        status: row?.status,
+        startDate: parseDate(row?.startDate || row?.start_date),
+        endDate: parseDate(row?.endDate || row?.end_date),
+      };
+    });
+
+    setJoinedMap(map);
+    console.log("최종 구성된 joinedMap:", map);
+  } catch (e) {
+    console.error("참여 목록 로드 실패", e);
+  }
+};
+
+//적게 지출하기 챌린지 실시간 순위 로직
+const loadRanking = async (challengeId) => {
+  try {
+    const data = await challengeApi.getGroupRanking(selectedGroupId, challengeId);
+    setRankings(prev => ({ ...prev, [challengeId]: data }));
+  } catch (e) {
+    console.error("순위 로드 실패", e);
+  }
+};
+
+// 지출 입력 성공 후나 특정 액션 후에 실행되도록 유도
+// const refreshData = async () => {
+//     await loadMyJoined(challengeMode); // 참여 상태 갱신
+//     if (challengeMode === "GROUP" && selectedGroupId) {
+//         // 현재 진행 중인 챌린지 ID를 찾아 랭킹 강제 업데이트
+//         Object.keys(joinedMap).forEach(id => {
+//             if(joinedMap[id].status === 'PROCEEDING') loadRanking(id);
+//         });
+//     }
+// };
+
+  // const loadMyJoined = async (mode) => {
+  //   if (!user?.userId) return;
+  //   try {
+  //     const data = await challengeApi.myJoinedList({
+  //       userId: user.userId,
+  //       challengeMode: mode,
+  //     });
+  //     const arr = normalizeList(data);
+  //     const map = {};
+  //     arr.forEach((row) => {
+  //       const id = row?.challengeId || row?.challenge_id;
+  //       if (!id) return;
+  //       map[id] = {
+  //         status: row?.status,
+  //         startDate: parseDate(row?.startDate),
+  //         endDate: parseDate(row?.endDate),
+  //       };
+  //     });
+  //     setJoinedMap(map);
+  //   } catch (e) {
+  //     // 실패해도 화면은 떠야 하니 무시
+  //   }
   // };
 
-  // const isJoined = (challengeId) => !!joinedMap[challengeId];
+
+  // 그룹가계부
+  const filteredList = useMemo(() => {
+  if (challengeMode === "GROUP") {
+    if (!selectedGroupId) return []; 
+
+    return list.filter(c => {
+      const challengeGroupId = c.groupbId || c.group_id || c.groupId;
+    
+      if (challengeGroupId === undefined || challengeGroupId === null) return true;
+      
+      return String(challengeGroupId) === String(selectedGroupId);
+    });
+  }
+  return list; 
+}, [list, challengeMode, selectedGroupId]);
+
+  useEffect(() => {
+    loadList(challengeMode); 
+    loadMyJoined(challengeMode);
+
+    if (challengeMode !== "GROUP") {
+      setSelectedGroupId(null);
+    }
+  }, [challengeMode, user?.userId]);
+
+  useEffect(() => {
+  if (challengeMode === "GROUP" && groupBudgetList.length > 0 && !selectedGroupId) {
+      const firstId = groupBudgetList[0].groupbId || groupBudgetList[0].group_id;
+      if (firstId) {
+        setSelectedGroupId(firstId);
+      }
+    }
+  }, [challengeMode, groupBudgetList, selectedGroupId]);
+
+  useEffect(() => {
+    if (challengeMode === "GROUP") {
+      if (selectedGroupId) {
+        loadMyJoined("GROUP"); 
+      } else {
+        setJoinedMap({});
+      }
+    } else {
+      loadMyJoined("PERSONAL");
+    }
+  }, [challengeMode, selectedGroupId, user?.userId]); 
+
+  useEffect(() => {
+    if (challengeMode === "GROUP" && selectedGroupId && Object.keys(joinedMap).length > 0) {
+      Object.keys(joinedMap).forEach((id) => {
+        if (joinedMap[id]?.status === "PROCEEDING") {
+          loadRanking(id);
+        }
+      });
+    }
+  }, [joinedMap, challengeMode, selectedGroupId]);
 
   const pickMessage = (res) => {
     if (res == null) return "참여 완료";
@@ -210,58 +335,86 @@ export default function ChallengePage() {
     );
   };
 
-  // ChallengePage.jsx 수정안
+  const confirmJoin = async () => {
+    if (!selected || !user?.userId) return;
+    if (challengeMode === "GROUP" && !selectedGroupId) {
+      setJoinMsg("대상 그룹 가계부를 선택해주세요.");
+      return;
+    }
 
-// ChallengePage.jsx
+    try {
+      let res;
 
-const confirmJoin = async () => {
-  if (!selected || !user?.userId) return;
+      if (challengeMode === "GROUP") {
+        res = await challengeApi.joinGroup({
+          userId: user.userId,
+          challengeId: selected.challengeId,
+          groupbId: selectedGroupId,
+          startDate: joinForm.startDate,
+          endDate: joinForm.endDate,
+        });
+      } else {
+        res = await challengeApi.join({
+          userId: user.userId,
+          challengeId: selected.challengeId,
+          startDate: joinForm.startDate,
+          endDate: joinForm.endDate,
+        });
+      }
 
-  try {
-    // 1. 서버에 참여 요청
-    const res = await challengeApi.join({
-      userId: user.userId,
-      challengeId: selected.challengeId,
-      startDate: joinForm.startDate,
-      endDate: joinForm.endDate,
-    });
+      setJoinMsg(pickMessage(res));
 
-    setJoinMsg(pickMessage(res));
+      setTimeout(async () => {
+        await loadMyJoined(challengeMode); 
+        closeJoin();
+      }, 1500); 
 
-    // 2. ✅ 서버의 스케줄러가 상태를 바꿀 시간을 조금 더 줍니다 (1.5초)
-    // 그 후 내 참여 목록을 다시 불러와서 'FAILED' 혹은 'PROCEEDING' 상태를 UI에 반영합니다.
-    setTimeout(async () => {
-      await loadMyJoined(challengeMode); // 서버에서 최신 상태 다시 조회
-      closeJoin();
-    }, 1500); 
+    } catch (e) {
+      console.error("참여 처리 중 에러 발생:", e);
+      setJoinMsg(pickErrorMessage(e));
+    }
+  };
 
-  } catch (e) {
-    setJoinMsg(pickErrorMessage(e));
-  }
-};
+// const confirmJoin = async () => {
+//   if (!selected || !user?.userId) return;
+
+//   try {
+//     // 1. 서버에 참여 요청
+//     const res = await challengeApi.join({
+//       userId: user.userId,
+//       challengeId: selected.challengeId,
+//       startDate: joinForm.startDate,
+//       endDate: joinForm.endDate,
+//     });
+
+//     setJoinMsg(pickMessage(res));
+
+//     // 2. ✅ 서버의 스케줄러가 상태를 바꿀 시간을 조금 더 줍니다 (1.5초)
+//     // 그 후 내 참여 목록을 다시 불러와서 'FAILED' 혹은 'PROCEEDING' 상태를 UI에 반영합니다.
+//     setTimeout(async () => {
+//       await loadMyJoined(challengeMode); // 서버에서 최신 상태 다시 조회
+//       closeJoin();
+//     }, 1500); 
+
+//   } catch (e) {
+//     setJoinMsg(pickErrorMessage(e));
+//   }
+// };
 
   // getJoinLabel 함수 보강
   const getJoinLabel = (challengeId) => {
     const j = joinedMap[challengeId];
     // 맵에 데이터가 없으면 다시 참여 가능한 상태로 간주
     if (!j) return "참여하기"; 
-    
-    // if (j.status === "RESERVED") return "참여 예정";
-    // if (j.status === "PROCEEDING") return "진행중";
-    // if (j.status === "SUCCESS") return "성공";
-    // if (j.status === "FAILED") return "실패";
-    // return "참여중";
     switch(j.status) {
-      case "SUCCESS": return "성공(완료)"; // 성공 시 문구 변경
+      case "SUCCESS": return "성공(완료)";
       case "RESERVED": return "참여 예정";
       case "PROCEEDING": return "진행중";
-      case "FAILED": return "참여하기"; // 실패 시 재도전 허용 (원치 않으시면 SUCCESS처럼 처리)
+      case "FAILED": return "참여하기";
       default: return "참여중";
     }
   };
 
-  // isJoined 판단 로직 수정
-  // FAILED가 된 챌린지는 다시 '참여하기'가 뜨도록 하려면 status 체크가 필요합니다.
   const isJoined = (challengeId) => {
     const j = joinedMap[challengeId];
     if (!j) return false;
@@ -270,260 +423,358 @@ const confirmJoin = async () => {
   };
 
   return (
-    <div className="challenge-wrap">
-      <div className="challenge-head">
-        <h2 className="challenge-title">챌린지</h2>
-        <div className="challenge-sub">
-          {displayName} 님, 목표를 정하고 재밌게 절약/관리하는 곳
-        </div>
+    <main className="fade-in">
+      <div className="content-header">
+        <div className="challenge-wrap">
+          <div className="challenge-head">
+            <h2 className="challenge-title">챌린지</h2>
+      
+            <div className="challenge-sub">
+              {displayName} 님, 목표를 정하고 재밌게 절약/관리하는 곳
+            </div>
+            </div>
+            </div>
+          
 
-        <div className="challenge-tab">
-          <button
-            className={`challenge-tabBtn ${
-              challengeMode === "PERSONAL" ? "active" : ""
-            }`}
-            onClick={() => setChallengeMode("PERSONAL")}
-          >
-            개인 챌린지
-          </button>
-          <button
-            className={`challenge-tabBtn ${
-              challengeMode === "GROUP" ? "active" : ""
-            }`}
-            onClick={() => setChallengeMode("GROUP")}
-          >
-            그룹 챌린지
-          </button>
+          <div className="challenge-tab">
+            <button
+              className={`challenge-tabBtn ${
+                challengeMode === "PERSONAL" ? "active" : ""
+              }`}
+              onClick={() => setChallengeMode("PERSONAL")}
+            >
+              개인 챌린지
+            </button>
+            <button
+              className={`challenge-tabBtn ${
+                challengeMode === "GROUP" ? "active" : ""
+              }`}
+              onClick={() => setChallengeMode("GROUP")}
+            >
+              그룹 챌린지
+            </button>
 
-          {/* ✅ 오른쪽에 "지난 챌린지" 버튼 추가 */}
-          <button
-            type="button"
-            className="challenge-tabBtn challenge-history-btn"
-            onClick={openHistory}
-          >
-            지난 챌린지
-          </button>
-        </div>
-      </div>
+            <button
+              type="button"
+              className="challenge-tabBtn challenge-history-btn"
+              onClick={openHistory}
+            >
+              지난 챌린지
+            </button>
+          </div>
+        
 
-      <div className="challenge-body">
-        {isLoading && <div className="challenge-empty">불러오는 중...</div>}
-        {!isLoading && errorMsg && (
-          <div className="challenge-empty">{errorMsg}</div>
-        )}
-        {!isLoading && !errorMsg && list?.length === 0 && (
-          <div className="challenge-empty">챌린지가 없음</div>
-        )}
+        <div className="challenge-body">
+          {isLoading && <div className="challenge-empty">불러오는 중...</div>}
+          {!isLoading && errorMsg && (
+            <div className="challenge-empty">{errorMsg}</div>
+          )}
+          {!isLoading && !errorMsg && list?.length === 0 && (
+            <div className="challenge-empty">챌린지가 없음</div>
+          )}
 
-        {!isLoading && !errorMsg && list?.length > 0 && (
-          <div className="challenge-list">
-            {list.map((c) => {
-              const id = c?.challengeId ?? c?.challenge_id;
-              const desc = c?.description ?? c?.desc;
-              const category = c?.category;
-              const type = c?.type;
-              const duration = c?.duration;
-              const target = c?.target;
-              const targetCount = c?.targetCount ?? c?.target_count;
+          {challengeMode === "GROUP" && groupBudgetList.length > 0 && (
+            <div className="group-selection-area" style={{ marginBottom: '20px', padding: '10px' }}>
+              <p style={{ fontSize: '14px', marginBottom: '8px', color: '#666' }}>대상 그룹 가계부 선택:</p>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                {groupBudgetList.map((gb) => (
+                  <button
+                    key={gb.groupbId}
+                    onClick={() => setSelectedGroupId(gb.groupbId)}
+                    style={{
+                      padding: '6px 12px',
+                      borderRadius: '20px',
+                      border: '1px solid #ddd',
+                      backgroundColor: selectedGroupId === gb.groupbId ? '#2c3e50' : '#fff',
+                      color: selectedGroupId === gb.groupbId ? '#fff' : '#333',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {gb.title}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
-              const j = joinedMap[id];
-              const startDate = j?.startDate;
-              const endDate = j?.endDate;
+        
 
-              return (
-                <article key={String(id) + desc} className="cp-card">
-                  <div className="cp-cardTop">
-                    <div className="cp-badge">{fmtMode(challengeMode)}</div>
-                    <div className="cp-id">{id}</div>
-                  </div>
+          {!isLoading && !errorMsg && filteredList?.length > 0 && (
+            <div className="challenge-list">
+              {filteredList.map((c) => {
+                const id = c?.challengeId ?? c?.challenge_id;
+                const desc = c?.description ?? c?.desc;
+                const category = c?.category;
+                const type = c?.type;
+                const duration = c?.duration;
+                const target = c?.target;
+                const targetCount = c?.targetCount ?? c?.target_count;
 
-                  <div className="cp-desc">{desc}</div>
+                const j = joinedMap[String(id)];
+                const startDate = j?.startDate;
+                const endDate = j?.endDate;
 
-                  <div className="cp-meta">
-                    <div className="cp-metaRow">
-                      <span className="cp-k">카테고리</span>
-                      <span className="cp-v">{category || "전체"}</span>
+                return (
+                  <article key={String(id) + desc} className="cp-card">
+                    <div className="cp-cardTop">
+                      <div className="cp-badge">{fmtMode(challengeMode)}</div>
+                      <div className="cp-id">{id}</div>
                     </div>
-                    <div className="cp-metaRow">
-                      <span className="cp-k">구분</span>
-                      <span className="cp-v">{fmtType(type)}</span>
-                    </div>
-                    <div className="cp-metaRow">
-                      <span className="cp-k">기간</span>
-                      <span className="cp-v">{duration}일</span>
-                    </div>
-
-                    {targetCount ? (
-                      <div className="cp-metaRow">
-                        <span className="cp-k">목표</span>
-                        <span className="cp-v">{targetCount}회 이하</span>
-                      </div>
-                    ) : (
-                      <div className="cp-metaRow">
-                        <span className="cp-k">목표</span>
-                        <span className="cp-v">
-                          {target?.toLocaleString?.() || target}원 이하
+                    <p>
+                      {challengeMode === "GROUP" && selectedGroupId && (
+                        <span style={{ fontSize: '11px', color: '#4A90E2', fontWeight: 'bold' }}>
+                          [ {groupBudgetList.find(g => String(g.groupbId || g.id) === String(selectedGroupId))?.title || "선택된 가계부"} ] 대상
                         </span>
-                      </div>
-                    )}
-                  </div>
+                      )}
+                    </p>
 
-                  {startDate && endDate && (
-                    <div className="cp-dates">
-                      <div className="cp-date">
-                        시작날짜({startDate}) ~ 종료날짜({endDate})
+
+                    <div className="cp-desc">{desc}</div>
+
+                    <div className="cp-meta">
+                      <div className="cp-metaRow">
+                        <span className="cp-k">카테고리</span>
+                        <span className="cp-v">{category || "전체"}</span>
                       </div>
+                      <div className="cp-metaRow">
+                        <span className="cp-k">구분</span>
+                        <span className="cp-v">{fmtType(type)}</span>
+                      </div>
+                      <div className="cp-metaRow">
+                        <span className="cp-k">기간</span>
+                        <span className="cp-v">{duration === 0 ? "전체" : `${duration}일`}</span>
+                      </div>
+
+                      {targetCount ? (
+                        <div className="cp-metaRow">
+                          <span className="cp-k">목표</span>
+                          <span className="cp-v">{targetCount}회 이하</span>
+                        </div>
+                      ) : (
+                        <div className="cp-metaRow">
+                          <span className="cp-k">목표</span>
+                          <span className="cp-v">
+                            {target?.toLocaleString?.() || target}원 이하
+                          </span>
+                        </div>
+                      )}
                     </div>
-                  )}
 
-                  <div className="cp-actions">
-                    <button
-                      className={`cp-joinBtn ${isJoined(id) ? "disabled" : ""}`}
-                      onClick={() => {
-                        if (isJoined(id)) return;
-                        openJoin(c);
-                      }}
-                      disabled={isJoined(id)}
-                    >
-                      {getJoinLabel(id)}
-                    </button>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
-      {/* 참여 모달 */}
-      {isJoinOpen && selected && (
-        <div className="ch-modalOverlay" onClick={closeJoin}>
-          <div className="ch-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="ch-modalTitle">챌린지 참여</div>
-            <div className="ch-modalDesc">
-              <div className="ch-modalDescStrong">{selected?.description}</div>
-              <div className="ch-modalDescSub">기간 {selected?.duration}일</div>
-            </div>
-
-            <div className="ch-form">
-              <div className="ch-field">
-                <label>시작일</label>
-                <input
-                  type="date"
-                  name="startDate"
-                  value={joinForm.startDate}
-                  onChange={(e) => {
-                    handleChange(e);
-                    const v = e.target.value;
-                    const end = calcEndDate(v, selected?.duration || 1);
-                    setJoinForm((prev) => ({
-                      ...prev,
-                      startDate: v,
-                      endDate: end,
-                    }));
-                  }}
-                />
-              </div>
-              <div className="ch-field">
-                <label>종료일</label>
-                <input
-                  type="date"
-                  name="endDate"
-                  value={joinForm.endDate}
-                  onChange={handleChange}
-                />
-              </div>
-            </div>
-
-            {joinMsg && <div className="ch-msg">{joinMsg}</div>}
-
-            <div className="ch-actions">
-              <button className="ch-btn ghost" onClick={closeJoin}>
-                취소
-              </button>
-              <button className="ch-btn primary" onClick={confirmJoin}>
-                참여 확정
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ✅ 지난 챌린지 모달 */}
-      {isHistoryOpen && (
-        <div className="ch-modalOverlay" onClick={closeHistory}>
-          <div
-            className="ch-modal ch-modal--history"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="ch-modalTitle">지난 챌린지</div>
-
-            {historyMsg && <div className="ch-msg">{historyMsg}</div>}
-
-            {!historyMsg && historyList?.length === 0 && (
-              <div className="challenge-empty">지난 챌린지가 없음</div>
-            )}
-
-            {!historyMsg && historyList?.length > 0 && (
-              <div className="ch-historyList">
-                {historyList.map((h) => {
-                  const status = h?.status;
-                  const statusCls =
-                    status === "SUCCESS"
-                      ? "success"
-                      : status === "FAILED"
-                      ? "failed"
-                      : "";
-                  return (
-                    <div
-                      key={`${h?.challengeId}-${h?.startDate}-${h?.endDate}`}
-                      className="ch-historyItem"
-                    >
-                      <div className="ch-historyTop">
-                        <div className="ch-historyTitle">{h?.description}</div>
-                        <div className={`ch-historyStatus ${statusCls}`}>
-                          {status === "SUCCESS"
-                            ? "성공"
-                            : status === "FAILED"
-                            ? "실패"
-                            : status}
+                    {startDate && endDate && (
+                      <div className="cp-dates">
+                        <div className="cp-date">
+                          시작날짜({startDate}) ~ 종료날짜({endDate})
                         </div>
                       </div>
+                    )}
 
-                      <div className="ch-historyMeta">
-                        <div>카테고리: {h?.category || "전체"}</div>
-                        <div>구분: {fmtType(h?.type)}</div>
-                        <div>기간: {h?.duration}일</div>
-                        {h?.targetCount ? (
-                          <div>목표: {h?.targetCount}회 이하</div>
+                    <div className="cp-actions">
+                      <button
+                        className={`cp-joinBtn ${isJoined(id) ? "disabled" : ""}`}
+                        onClick={() => {
+                          if (isJoined(id)) return;
+                          openJoin(c);
+                        }}
+                        disabled={isJoined(id)}
+                      >
+                        {getJoinLabel(id)}
+                      </button>
+                    </div>
+
+                      {/* 적게 지출하기 실시간 순위 */}
+                    {j?.status === "PROCEEDING" && id==='group_reduceZero_competition' && (
+                      <div className="cp-ranking-section" style={{
+                        marginTop: '15px',
+                        padding: '12px',
+                        backgroundColor: '#f8fbff',
+                        borderRadius: '10px',
+                        border: '1px solid #e1e9f5'
+                      }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                          <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#2c3e50' }}>
+                            🏆 실시간 그룹 순위 (지출 적은 순)
+                          </span>
+                          <button 
+                            onClick={() => loadRanking(id)}
+                            style={{ fontSize: '11px', color: '#4A90E2', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
+                          >
+                            새로고침 ↻
+                          </button>
+                        </div>
+                        
+                        {rankings[id] && rankings[id].length > 0 ? (
+                          <div className="cp-ranking-list">
+                            {rankings[id].slice(0, 3).map((rk, idx) => {
+                              const isFirst = idx === 0;
+                              return (
+                                <div key={rk.userId} style={{
+                                  display: 'flex',
+                                  justifyContent: 'space-between',
+                                  alignItems: 'center',
+                                  padding: '8px 10px',
+                                  marginBottom: '4px',
+                                  backgroundColor: isFirst ? '#fff' : 'rgba(255,255,255,0.5)',
+                                  borderRadius: '8px',
+                                  boxShadow: isFirst ? '0 2px 4px rgba(0,0,0,0.05)' : 'none',
+                                  border: isFirst ? '1px solid #ffeaa7' : '1px solid #eee'
+                                }}>
+                                  <span style={{ fontSize: '13px', color: isFirst ? '#d35400' : '#333', fontWeight: isFirst ? 'bold' : 'normal' }}>
+                                    {isFirst ? '🥇 ' : `${idx + 1}위. `}
+                                    {rk.nickname} {String(rk.userId) === String(user?.userId) && <small style={{color:'#999'}}>(나)</small>}
+                                  </span>
+                                  <span style={{ fontSize: '13px', fontWeight: 'bold', color: isFirst ? '#e67e22' : '#555' }}>
+                                    {Number(rk.totalAmount).toLocaleString()}원
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
                         ) : (
-                          <div>
-                            목표:{" "}
-                            {(h?.target || 0).toLocaleString?.() || h?.target}원
-                            이하
+                          <div style={{ fontSize: '12px', color: '#999', textAlign: 'center', padding: '10px' }}>
+                            아직 집계된 지출 내역이 없습니다.
                           </div>
                         )}
                       </div>
+                    )}
 
-                      <div className="ch-historyDate">
-                        시작날짜({parseDate(h?.startDate)}) ~ 종료날짜(
-                        {parseDate(h?.endDate)})
-                      </div>
-                    </div>
-                  );
-                })}
+
+
+                  </article>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* 참여 모달 */}
+        {isJoinOpen && selected && (
+          <div className="ch-modalOverlay" onClick={closeJoin}>
+            <div className="ch-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="ch-modalTitle">챌린지 참여</div>
+              <div className="ch-modalDesc">
+                <div className="ch-modalDescStrong">{selected?.description}</div>
+                <div className="ch-modalDescSub">기간 {selected?.duration}일</div>
               </div>
-            )}
 
-            <div className="ch-actions">
-              <button className="ch-btn primary" onClick={closeHistory}>
-                닫기
-              </button>
+              <div className="ch-form">
+                <div className="ch-field">
+                  <label>시작일</label>
+                  <input
+                    type="date"
+                    name="startDate"
+                    value={joinForm.startDate}
+                    onChange={(e) => {
+                      handleChange(e);
+                      const v = e.target.value;
+                      const end = calcEndDate(v, selected?.duration || 1);
+                      setJoinForm((prev) => ({
+                        ...prev,
+                        startDate: v,
+                        endDate: end,
+                      }));
+                    }}
+                  />
+                </div>
+                <div className="ch-field">
+                  <label>종료일</label>
+                  <input
+                    type="date"
+                    name="endDate"
+                    value={joinForm.endDate}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+
+              {joinMsg && <div className="ch-msg">{joinMsg}</div>}
+
+              <div className="ch-actions">
+                <button className="ch-btn ghost" onClick={closeJoin}>
+                  취소
+                </button>
+                <button className="ch-btn primary" onClick={confirmJoin}>
+                  참여 확정
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+
+        {isHistoryOpen && (
+          <div className="ch-modalOverlay" onClick={closeHistory}>
+            <div
+              className="ch-modal ch-modal--history"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="ch-modalTitle">지난 챌린지</div>
+
+              {historyMsg && <div className="ch-msg">{historyMsg}</div>}
+
+              {!historyMsg && historyList?.length === 0 && (
+                <div className="challenge-empty">지난 챌린지가 없음</div>
+              )}
+
+              {!historyMsg && historyList?.length > 0 && (
+                <div className="ch-historyList">
+                  {historyList.map((h) => {
+                    const status = h?.status;
+                    const statusCls =
+                      status === "SUCCESS"
+                        ? "success"
+                        : status === "FAILED"
+                        ? "failed"
+                        : "";
+                    return (
+                      <div
+                        key={`${h?.challengeId}-${h?.startDate}-${h?.endDate}`}
+                        className="ch-historyItem"
+                      >
+                        <div className="ch-historyTop">
+                          <div className="ch-historyTitle">{h?.description}</div>
+                          <div className={`ch-historyStatus ${statusCls}`}>
+                            {status === "SUCCESS"
+                              ? "성공"
+                              : status === "FAILED"
+                              ? "실패"
+                              : status}
+                          </div>
+                        </div>
+
+                        <div className="ch-historyMeta">
+                          <div>카테고리: {h?.category || "전체"}</div>
+                          <div>구분: {fmtType(h?.type)}</div>
+                          <div>기간: {h?.duration}일</div>
+                          {h?.targetCount ? (
+                            <div>목표: {h?.targetCount}회 이하</div>
+                          ) : (
+                            <div>
+                              목표:{" "}
+                              {(h?.target || 0).toLocaleString?.() || h?.target}원
+                              이하
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="ch-historyDate">
+                          시작날짜({parseDate(h?.startDate)}) ~ 종료날짜(
+                          {parseDate(h?.endDate)})
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              <div className="ch-actions">
+                <button className="ch-btn primary" onClick={closeHistory}>
+                  닫기
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </main>
   );
 }
 

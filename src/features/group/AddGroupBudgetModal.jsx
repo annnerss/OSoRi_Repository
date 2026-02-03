@@ -10,8 +10,6 @@ const AddGroupBudgetModal=({userId,onClose,onSuccess})=>{
     const [searchKeyword,setSearchKeyword] = useState('');
     const [memList, setMemList] = useState([]);
     const [selectedMemList, setSelectedMemList] = useState([]);
-    const [groupChallList, setGroupChallList] = useState([]);
-    const [selectedGroupChall, setSelectedGroupChall] =useState([]);
     const overlayRef = useRef(null);
 
     const [formData,setFormData] = useState({
@@ -47,21 +45,6 @@ const AddGroupBudgetModal=({userId,onClose,onSuccess})=>{
         }
     };
 
-    //그룹 챌린지 목록 조회하기
-    const fetchChallList = async() =>{
-        try{
-            const data = await groupBudgetApi.groupChallList();
-            
-            setGroupChallList(data);
-        }catch(error){
-            console.log("그룹 챌린지 목록 조회 실패");
-        }
-    }
-
-    useEffect(()=>{
-        fetchChallList();
-    },[]);
-
     useEffect(()=>{
         const timer = setTimeout(() => {
             if (searchKeyword.trim().length >= 2) { // 2글자 이상일 때만 호출
@@ -90,25 +73,9 @@ const AddGroupBudgetModal=({userId,onClose,onSuccess})=>{
         setMemList([]); 
     }
 
-    //추가 멤버들 핸들러
-    const handleSelectChall=(chall)=>{
-        const isAlreadySelected = selectedGroupChall.some(chal=>chal.challengeId === chall.challengeId);
-
-        if(isAlreadySelected){
-            alert("이미 추가된 챌린지입니다.");
-            return;
-        }
-
-        setSelectedGroupChall(prev => [...prev, chall]);
-    }
-
     //선택 취소 핸들러
     const handleDeleteSelectMem=(delMemId)=>{
         setSelectedMemList(prev=>prev.filter(mem=>mem.userId !== delMemId));
-    }
-
-    const handleDeleteSelectChall=(delChalId)=>{
-        setSelectedGroupChall(prev=>prev.filter(chall=>chall.challengeId !== delChalId));
     }
 
     const handleSubmit=async(e)=>{
@@ -147,15 +114,6 @@ const AddGroupBudgetModal=({userId,onClose,onSuccess})=>{
                 });
 
                 await Promise.all(addMemPromise);
-
-                const addChallPromise = selectedGroupChall.map(chall=>{
-                    return groupBudgetApi.addGroupChallList({
-                        challengeId: chall.challengeId,
-                        groupbId: newGroup.groupbId
-                    });
-                });
-
-                await Promise.all(addChallPromise);
 
                 alert("그룹가계부 추가에 성공했습니다!");
                 onSuccess();
@@ -224,31 +182,6 @@ const AddGroupBudgetModal=({userId,onClose,onSuccess})=>{
                                 <span key={mem.userId} className="member-badge">
                                     {mem.nickName} 
                                     <button onClick={() => handleDeleteSelectMem(mem.userId)}>x</button>
-                                </span>
-                            ))}
-                        </div>
-
-                        <label htmlFor="groupChall">그룹가계부 챌린지</label>
-                        <ul className="challenge-list">
-                            {groupChallList.length === 0 ? (
-                                <li className="no-challenge">
-                                    현재 진행중인 챌린지가 없습니다.
-                                </li>
-                            ) : (
-                                groupChallList.map((chall) => (
-                                    <li key={chall.challengeId} onClick={()=>handleSelectChall(chall)}>
-                                        {chall.description}
-                                    </li>
-                                ))
-                            )}
-                        </ul>
-
-                        <div className="selected-chall">
-                            <label>선택된 챌린지:</label>
-                            {selectedGroupChall.map((chall) => (
-                                <span  className="chall-badge">
-                                    {chall.challengeId}
-                                    <button onClick={() => handleDeleteSelectChall(chall.challengeId)}>x</button>
                                 </span>
                             ))}
                         </div>

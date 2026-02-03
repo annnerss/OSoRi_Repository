@@ -48,12 +48,18 @@
   font-weight: bold;
 }
 
+.challenge-tab button:nth-child(2).active {
+  background-color: #10b981; /* 초록색 */
+  border-color: #28a745;
+}
+
 /* ✅ 챌린지 전체를 감싸는 큰 박스 */
 .challenge-list-wrapper {
   background-color: #f8fafc;
   border-radius: 20px;
   padding: 32px 24px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  max-width: 90%;
 }
 
 /* 챌린지 리스트 */
@@ -100,7 +106,6 @@
 
 .challenge-title {
   font-weight: 700;
-  font-size: 17px;
   margin-bottom: 8px;
   color: #111827;
 }
@@ -133,6 +138,14 @@
 
 .challenge-join-btn:hover {
   background-color: #1e40af;
+}
+
+.challenge-list-item.group .challenge-join-btn {
+  background-color: #10b981;
+}
+
+.challenge-list-item.group .challenge-join-btn:hover {
+  background-color: #218838;
 }
 
 .error {
@@ -332,7 +345,7 @@
 }
 
 .challenge-wrap {
-  padding: 26px 28px;
+  padding: 0px;
 }
 
 .challenge-head {
@@ -342,7 +355,7 @@
 .challenge-title {
   font-size: 26px;
   font-weight: 900;
-  margin: 0;
+  margin: 23px 0 23px 0;
 }
 
 .challenge-sub {
@@ -682,6 +695,13 @@
   color: #64748b;
   font-size: 13px;
 }
+
+
+
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
 
 
 

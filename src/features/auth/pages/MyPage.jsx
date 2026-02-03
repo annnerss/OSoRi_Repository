@@ -8,15 +8,14 @@ import useAlarmSocket from "../../alarm/useAlarmSocket";
 import ZScoreNotification from "../../Util/ZScoreNotification";
 import transApi from "../../../api/transApi";
 import OldGroupBudgetModal from "../../group/OldGroupBudgetModal";
+import { useGroupBudgets } from "../../../hooks/useGroupBudgets";
 
 const MyPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-
   const displayName = user?.nickName || user?.nickname || user?.userName || "회원";
   const email = user?.email || "";
 
-  const [groupBudgetList,setGroupBudgetList] =useState([]);
   const [isLoading,setIsLoading] = useState(true); 
   const [isModalOpen,setIsModalOpen] =useState(false); //새로운 그룹가계부 생성 모달
   const [isModalOpen2, setIsModalOpen2] = useState(false); //이전 가계부 목록 모달
@@ -24,23 +23,10 @@ const MyPage = () => {
   const [transactions, setTransactions] = useState([]);
   const { notifications, setNotifications } = useAlarmSocket(user?.loginId);
   const [isNotiOpen, setIsNotiOpen] = useState(false);
-
-  //그룹 가계부 리스트 호출
-  const fetchGroupBudgetList = async()=>{
-      if (!user?.userId) return;
-      setIsLoading(true);
-      try{
-        const data = await groupBudgetApi.groupBudgetList(user?.userId);
-
-        setGroupBudgetList(data);
-      }catch(error){
-        console.error('그룹가계부 목록 조회 실패',error);
-        alert('그룹가계부 목록을 조회할 수 없습니다.');
-        navigate('/mypage');    
-      }finally{
-        setIsLoading(false);
-      }
-  }
+  const { groupBudgetList = [], isLoading: isGroupLoading } = useGroupBudgets(user?.userId);
+  const serverAvatarUrl = user?.changeName 
+    ? `http://localhost:8080/osori/upload/profiles/${user.changeName}` 
+    : "";
 
   //안읽은 알림 목록 조회
   const fetchNotiList = async(loginId)=>{
@@ -107,7 +93,6 @@ const MyPage = () => {
     }, [transactions, currentDate]);
 
   useEffect(()=>{
-    fetchGroupBudgetList();
     navigate('/mypage');
     loadData();
   },[user?.userId, navigate]);
@@ -118,7 +103,6 @@ const MyPage = () => {
 
   // 수락/거절 처리 함수
   const handleInviteAction = async (noti, status) => {
-    console.log("handleInviteAction noti : ",noti.notiId);
     try {
       const params = {
         status: status, // "ACCEPTED" / "REJECTED"
@@ -148,6 +132,20 @@ const MyPage = () => {
       alert("처리에 실패했습니다.");
     }
   };
+
+  const handleNotiRead = async (noti) =>{
+    try {
+      await groupBudgetApi.updateNotiIsRead(noti.notiId);
+
+      setNotifications(prev => {
+        if (!prev) return []; 
+        return prev.filter(n => n.notiId !== noti.notiId);
+      });
+        
+    } catch (error) {
+      console.error("알림 읽음 상태 변경 실패", error);
+    }
+  }
 
 
   return (
@@ -182,7 +180,9 @@ const MyPage = () => {
                           <button className="reject-btn" onClick={() => handleInviteAction(noti, "REJECTED")}>거절</button>
                         </div>
                       ) : (
-                        <span className="noti-label">{noti.message}</span>
+                        <div className="noti-btns">
+                          <button className="accept-btn" onClick={() => handleNotiRead(noti)}>읽음</button>
+                        </div>
                       )}
                     </li>
                   ))}
@@ -195,7 +195,13 @@ const MyPage = () => {
       <section className="profile-fixed-card">
         <div className="info-card profile-main">
           <div className="profile-section">
-            <div className="profile-img">👤</div>
+              <div className="profile-img ps-avatar">
+                {serverAvatarUrl ? (
+                  <img src={serverAvatarUrl} alt="프로필" />
+                ) : (
+                  <span aria-hidden>👤</span>
+                )}
+              </div>
             <div className="profile-details">
               <h3>{displayName}</h3>
               <p>{email}</p>
@@ -220,7 +226,7 @@ const MyPage = () => {
           </div>
         </div>
 
-        <div className="info-card">
+        <div className="info-card" ><br/>  {/*높이 조정 임시 br 추가*/}
           <div className="card-title-area">
             <h3>👨‍👩‍👧‍👦 그룹 가계부</h3>
             <span className="status-dot">{groupBudgetList.length}개 운영 중</span>
@@ -243,7 +249,7 @@ const MyPage = () => {
                           }}
                       className={({ isActive }) => `menu-item ${isActive ? "active" : ""}`}
                     >
-                      <span>🪙</span> {gb.title} 가계부
+                      <span>🪙{gb.title} 가계부</span> 
                       ({gb.startDate}~{gb.endDate})
                     </NavLink>
                   </li>
