@@ -8,8 +8,11 @@ export function AuthProvider({ children }) {
   const [token, setToken] = useState(() => localStorage.getItem("token") || "");
   const [user, setUser] = useState(() => {
     const raw = localStorage.getItem("user");
+    // "undefined" 문자열이 들어오는 경우를 방지
+    if (!raw || raw === "undefined") return null; // 2월 2일 추가 
     try {
-      return raw ? JSON.parse(raw) : null;
+      //return raw ? JSON.parse(raw) : null;
+      return JSON.parse(raw);
     } catch {
       return null;
     }
@@ -18,10 +21,24 @@ export function AuthProvider({ children }) {
   const isAuthenticated = !!token;
 
   const login = ({ token: nextToken, user: nextUser }) => {
-    localStorage.setItem("token", nextToken);
-    localStorage.setItem("user", JSON.stringify(nextUser));
-    setToken(nextToken);
-    setUser(nextUser);
+
+    //2월 2일 추가 
+
+    // 값이 존재할 때만 저장하도록 방어
+    if (nextToken) {
+        localStorage.setItem("token", nextToken);
+        setToken(nextToken);
+    }
+    if (nextUser) {
+        localStorage.setItem("user", JSON.stringify(nextUser));
+        setUser(nextUser);
+    }
+
+
+    // localStorage.setItem("token", nextToken);
+    // localStorage.setItem("user", JSON.stringify(nextUser));
+    // setToken(nextToken);
+    // setUser(nextUser);
   };
 
   const logout = async () => {

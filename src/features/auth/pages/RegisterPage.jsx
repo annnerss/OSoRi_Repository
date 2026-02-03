@@ -204,16 +204,33 @@ export default function RegisterPage() {
 
     setIsLoading(true);
     try {
-      await authApi.register({
-        loginId: form.loginId.trim(),
-        password: form.password,
-        userName: form.userName.trim(),
-        nickName: form.nickName.trim(),
-        email: form.email.trim(),
-      });
+
+
+      // await authApi.register({
+      //   loginId: form.loginId.trim(),
+      //   password: form.password,
+      //   userName: form.userName.trim(),
+      //   nickName: form.nickName.trim(),
+      //   email: form.email.trim(),
+      //   loginType: "LOCAL"
+      // });
+
+      const requestData = {
+        user : {
+          loginId : form.loginId.trim(),
+          password : form.password,
+          userName : form.userName.trim(),
+          nickName : form.nickName.trim(),
+          email : form.email.trim()
+        },
+        loginType : "LOCAL",
+        providerUserId : null 
+      }
+
+      await authApi.register(requestData); 
 
       alert("회원가입 성공");
-      navigate("/login", { replace: true, state: { loginId: form.loginId.trim() } });
+      navigate("/login", { replace: true, state: { loginId: form.loginId.trim() }});
     } catch (e) {
       const msg = e?.data?.message || "회원가입 실패";
       setError(msg);

@@ -21,6 +21,8 @@ import ExpensePage from './features/auth/pages/ExpensePage';
 import FixedTransPage from "./features/auth/pages/FixedTransPage"; // 추가
 import GroupAccountBook from './features/group/GroupAccountBook';
 import ChallengePage from "./features/auth/pages/ChallengePage";
+import KakaoCallback from "./features/auth/pages/KakaoCallback";
+import SocialRegisterPage from "./features/auth/pages/SocialRegisterPage";
 
 
 
@@ -51,6 +53,8 @@ function App() {
           <Route path="/find-id" element={<FindIdPage />} />
           <Route path="/find-password" element={<FindPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/auth/kakao/callback" element={<KakaoCallback />} />
+          <Route path="/social-register" element={<SocialRegisterPage />} />
         </Route>
 
         {/* 로그인 필요 */}
