@@ -236,6 +236,17 @@ const loadRanking = async (challengeId) => {
   }
 };
 
+// 지출 입력 성공 후나 특정 액션 후에 실행되도록 유도
+// const refreshData = async () => {
+//     await loadMyJoined(challengeMode); // 참여 상태 갱신
+//     if (challengeMode === "GROUP" && selectedGroupId) {
+//         // 현재 진행 중인 챌린지 ID를 찾아 랭킹 강제 업데이트
+//         Object.keys(joinedMap).forEach(id => {
+//             if(joinedMap[id].status === 'PROCEEDING') loadRanking(id);
+//         });
+//     }
+// };
+
   // const loadMyJoined = async (mode) => {
   //   if (!user?.userId) return;
   //   try {
@@ -627,7 +638,7 @@ const loadRanking = async (challengeId) => {
                   </div>
 
                     {/* 적게 지출하기 실시간 순위 */}
-                  {j?.status === "PROCEEDING" && (
+                  {j?.status === "PROCEEDING" && id==='group_reduceZero_competition' && (
                     <div className="cp-ranking-section" style={{
                       marginTop: '15px',
                       padding: '12px',
