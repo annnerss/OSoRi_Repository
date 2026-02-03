@@ -9,6 +9,7 @@ import ZScoreNotification from "../../Util/ZScoreNotification";
 import transApi from "../../../api/transApi";
 import OldGroupBudgetModal from "../../group/OldGroupBudgetModal";
 import { useGroupBudgets } from "../../../hooks/useGroupBudgets";
+import { badgeApi } from "../../../api/badgeApi";
 
 const MyPage = () => {
   const { user } = useAuth();
@@ -24,6 +25,7 @@ const MyPage = () => {
   const { notifications, setNotifications } = useAlarmSocket(user?.loginId);
   const [isNotiOpen, setIsNotiOpen] = useState(false);
   const { groupBudgetList = [], isLoading: isGroupLoading } = useGroupBudgets(user?.userId);
+  const [badges, setBadges] = useState([]);
   const serverAvatarUrl = user?.changeName 
     ? `http://localhost:8080/osori/upload/profiles/${user.changeName}` 
     : "";
@@ -100,6 +102,22 @@ const MyPage = () => {
   useEffect(()=>{
     fetchNotiList(user?.loginId);
   },[]);
+
+  // badgeApi 불러오기
+  useEffect(() => {
+        const fetchBadges = async () => {
+            if (user?.userId) {
+                try {
+                    // 기존 transApi 스타일과 동일하게 호출
+                    const data = await badgeApi.getUserBadges(user?.userId);
+                    setBadges(data);
+                } catch (error) {
+                    console.error("뱃지 로딩 에러:", error);
+                }
+            }
+        };
+        fetchBadges();
+    }, [user?.userId]);
 
   // 수락/거절 처리 함수
   const handleInviteAction = async (noti, status) => {
@@ -207,6 +225,37 @@ const MyPage = () => {
               <p>{email}</p>
             </div>
           <div className="v-line" />
+                {/* 뱃지 */}
+          <div className="badge-list">
+            {badges.map((badge) => (
+              <img 
+                key={badge.badgeId}
+                /* /finalOSoRi가 아니라 /osori 입니다! */
+                src={`http://localhost:8080/osori${badge.badgeIconUrl}`} 
+                alt={badge.badgeName}
+                title={badge.badgeName}
+                style={{ width: '90px', height: '90px', objectFit: 'contain' }}
+                onError={(e) => console.log("실패한 주소 확인:", e.target.src)}
+              />
+            ))}
+          </div>
+            {/* 최근 받은 뱃지 */}
+          {/* MyPage.jsx 내의 뱃지 렌더링 부분 */}
+          <div className="recent-badge-area">
+              {badges.length > 0 ? (
+                  <div className="badge-wrapper">
+                      {/* badges[0] 이 가장 최근에 얻은 뱃지입니다. */}
+                      <img 
+                          src={`http://localhost:8080/osori${badges[0].badgeIconUrl}`} 
+                          alt={badges[0].badgeName}
+                          style={{ width: '50px', height: '50px' }}
+                      />
+                  </div>
+              ) : (
+                  <p>아직 획득한 뱃지가 없습니다.</p>
+              )}
+          </div>
+
           </div>
         </div>
       </section>
