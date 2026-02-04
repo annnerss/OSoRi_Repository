@@ -225,36 +225,23 @@ const MyPage = () => {
               <p>{email}</p>
             </div>
           <div className="v-line" />
-                {/* 뱃지 */}
+          {/* 뱃지 */}
+          {/* 뱃지 (최근 1개만) */}
           <div className="badge-list">
-            {badges.map((badge) => (
-              <img 
-                key={badge.badgeId}
-                /* /finalOSoRi가 아니라 /osori 입니다! */
-                src={`http://localhost:8080/osori${badge.badgeIconUrl}`} 
-                alt={badge.badgeName}
-                title={badge.badgeName}
-                style={{ width: '90px', height: '90px', objectFit: 'contain' }}
-                onError={(e) => console.log("실패한 주소 확인:", e.target.src)}
+            {badges.length > 0 ? (
+              <img
+                key={badges[0].badgeId}
+                src={`http://localhost:8080/osori${badges[0].badgeIconUrl}`}
+                alt={badges[0].badgeName}
+                title={badges[0].badgeName}
+                style={{ width: "90px", height: "90px", objectFit: "contain" }}
               />
-            ))}
+            ) : (
+              <p>아직 획득한 뱃지가 없습니다.</p>
+            )}
           </div>
-            {/* 최근 받은 뱃지 */}
-          {/* MyPage.jsx 내의 뱃지 렌더링 부분 */}
-          <div className="recent-badge-area">
-              {badges.length > 0 ? (
-                  <div className="badge-wrapper">
-                      {/* badges[0] 이 가장 최근에 얻은 뱃지입니다. */}
-                      <img 
-                          src={`http://localhost:8080/osori${badges[0].badgeIconUrl}`} 
-                          alt={badges[0].badgeName}
-                          style={{ width: '50px', height: '50px' }}
-                      />
-                  </div>
-              ) : (
-                  <p>아직 획득한 뱃지가 없습니다.</p>
-              )}
-          </div>
+
+          
 
           </div>
         </div>

@@ -1,0 +1,354 @@
+/* 전체 페이지(컨텐츠 영역) */
+.mybadges-page {
+  width: 100%;
+  padding: 24px 28px 40px;
+}
+
+/* 헤더 */
+.mybadges-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.mybadges-title {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  margin: 0;
+}
+
+.mybadges-subtitle {
+  margin: 6px 0 0;
+  color: #7a869a;
+  font-size: 13px;
+}
+
+/* stats */
+.mybadges-stats {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.stat-card {
+  background: #ffffff;
+  border: 1px solid #eef1f6;
+  border-radius: 14px;
+  padding: 10px 12px;
+  min-width: 120px;
+  box-shadow: 0 10px 24px rgba(14, 18, 27, 0.06);
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #7a869a;
+}
+
+.stat-value {
+  font-size: 20px;
+  font-weight: 800;
+  margin-top: 2px;
+}
+
+.refresh-btn {
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid #e7ebf3;
+  background: #fff;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(14, 18, 27, 0.06);
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.refresh-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 30px rgba(14, 18, 27, 0.08);
+}
+
+.refresh-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* 컨트롤바 */
+.mybadges-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  margin: 14px 0 18px;
+}
+
+.searchbox {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  background: #fff;
+  border: 1px solid #eef1f6;
+  border-radius: 14px;
+  padding: 10px 12px;
+  box-shadow: 0 10px 24px rgba(14, 18, 27, 0.06);
+}
+
+.search-icon {
+  color: #97a3b6;
+  font-weight: 900;
+}
+
+.search-input {
+  width: 100%;
+  border: none;
+  outline: none;
+  font-size: 14px;
+}
+
+.control-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sort-select {
+  height: 44px;
+  border-radius: 14px;
+  border: 1px solid #eef1f6;
+  background: #fff;
+  padding: 0 12px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(14, 18, 27, 0.06);
+}
+
+/* 바디 */
+.mybadges-body {
+  margin-top: 10px;
+}
+
+/* 로딩/빈 상태 카드 */
+.state-card {
+  background: #fff;
+  border: 1px solid #eef1f6;
+  border-radius: 18px;
+  padding: 26px;
+  box-shadow: 0 12px 28px rgba(14, 18, 27, 0.06);
+  text-align: center;
+}
+
+.state-emoji {
+  font-size: 32px;
+  margin-bottom: 8px;
+}
+
+.state-text {
+  font-weight: 800;
+  font-size: 14px;
+}
+
+.state-sub {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #7a869a;
+}
+
+.spinner {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 3px solid #eef1f6;
+  border-top-color: #2f6fff;
+  margin: 0 auto 10px;
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 그리드 */
+.badge-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+/* 카드 */
+.badge-card {
+  background: #fff;
+  border: 1px solid #eef1f6;
+  border-radius: 18px;
+  padding: 16px 14px;
+  box-shadow: 0 12px 28px rgba(14, 18, 27, 0.06);
+
+  cursor: pointer;
+  text-align: left;
+  transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease;
+}
+
+.badge-card:hover {
+  transform: translateY(-2px);
+  border-color: #dbe3f3;
+  box-shadow: 0 18px 40px rgba(14, 18, 27, 0.10);
+}
+
+.badge-imgwrap {
+  position: relative;
+  width: 100%;
+  height: 110px;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #f7f9ff, #ffffff);
+  border: 1px solid #f1f4fb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.badge-img {
+  width: 86px;
+  height: 86px;
+  object-fit: contain;
+  z-index: 2;
+}
+
+.badge-fallback {
+  font-size: 34px;
+  z-index: 2;
+}
+
+.badge-glow {
+  position: absolute;
+  width: 140px;
+  height: 140px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(47, 111, 255, 0.18), rgba(47, 111, 255, 0));
+  filter: blur(2px);
+  transform: translate(28px, -24px);
+  z-index: 1;
+}
+
+.badge-meta {
+  margin-top: 12px;
+}
+
+.badge-name {
+  font-weight: 900;
+  letter-spacing: -0.2px;
+}
+
+.badge-date {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #667085;
+}
+
+.badge-date.muted {
+  color: #98a2b3;
+}
+
+/* 모달 */
+.badge-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(16, 18, 24, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  z-index: 9999;
+}
+
+.badge-modal-card {
+  width: min(760px, 96vw);
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
+  position: relative;
+  padding: 18px;
+}
+
+.modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  border: 1px solid #eef1f6;
+  background: #fff;
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.modal-content {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 16px;
+  align-items: center;
+  padding: 10px;
+}
+
+.modal-imgwrap {
+  background: linear-gradient(180deg, #f7f9ff, #ffffff);
+  border: 1px solid #eef1f6;
+  border-radius: 18px;
+  height: 220px;
+  display: grid;
+  place-items: center;
+}
+
+.modal-img {
+  width: 170px;
+  height: 170px;
+  object-fit: contain;
+}
+
+.modal-fallback {
+  font-size: 42px;
+}
+
+.modal-title {
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -0.4px;
+  margin-bottom: 6px;
+}
+
+.modal-desc {
+  color: #667085;
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+.modal-tip {
+  background: #f5f8ff;
+  border: 1px solid #e4ecff;
+  color: #2f6fff;
+  border-radius: 14px;
+  padding: 12px 12px;
+  font-weight: 800;
+  font-size: 13px;
+}
+
+/* 반응형 */
+@media (max-width: 1200px) {
+  .badge-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (max-width: 860px) {
+  .mybadges-header { flex-direction: column; align-items: flex-start; }
+  .mybadges-controls { flex-direction: column; align-items: stretch; }
+  .badge-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .modal-content { grid-template-columns: 1fr; }
+  .modal-imgwrap { height: 200px; }
+}
+
+@media (max-width: 520px) {
+  .badge-grid { grid-template-columns: 1fr; }
+}
