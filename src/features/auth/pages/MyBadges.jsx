@@ -88,9 +88,11 @@ export default function MyBadges() {
 
   // ✅ 발급일: USERBADGE.EARNED_AT
   const earnedRaw = b.earnedAt || b.earned_at;
-  const earnedText = earnedRaw
-    ? new Date(earnedText).toLocaleDateString("ko-KR")
-    : "발급일 정보 없음";
+  console.log("earnedRaw:", earnedRaw);
+
+  const earnedText = earnedRaw
+    ? new Date(earnedRaw).toLocaleDateString("ko-KR")
+    : "발급일 정보 없음";
 
   // ✅ 그룹 가계부명: GROUPBUDGET.TITLE
   const groupTitle = b.groupBudgetTitle || b.group_budget_title;
