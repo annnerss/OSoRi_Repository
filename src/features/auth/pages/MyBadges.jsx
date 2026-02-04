@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import "./MyBadges.css";
+import { useAuth } from "../../../context/AuthContext";
 
 const API_BASE = "http://localhost:8080/osori";
 
@@ -17,7 +18,8 @@ const API_BASE = "http://localhost:8080/osori";
  * ]
  */
 export default function MyBadges() {
-  const userId = Number(localStorage.getItem("userId")) || 1;
+  const { user } = useAuth();      // user.userId 존재
+  const userId = user?.userId;
 
   const [badges, setBadges] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -41,6 +43,12 @@ export default function MyBadges() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!userId) return;
+    fetchBadges(userId);
+    }, [userId]);
+
 
   useEffect(() => {
     fetchBadges();
@@ -86,13 +94,11 @@ export default function MyBadges() {
       ? "아기 오소리(회원가입)"
       : (b.challengeDesc || b.challenge_desc || b.badgeName || b.badge_name || "뱃지");
 
-  // ✅ 발급일: USERBADGE.EARNED_AT
+  //  발급일: USERBADGE.EARNED_AT
   const earnedRaw = b.earnedAt || b.earned_at;
-  console.log("earnedRaw:", earnedRaw);
+  console.log("earnedRaw:", earnedRaw);
 
-  const earnedText = earnedRaw
-    ? new Date(earnedRaw).toLocaleDateString("ko-KR")
-    : "발급일 정보 없음";
+  const earnedText = earnedRaw ? new Date(earnedRaw).toLocaleDateString("ko-KR") : "발급일 정보 없음";
 
   // ✅ 그룹 가계부명: GROUPBUDGET.TITLE
   const groupTitle = b.groupBudgetTitle || b.group_budget_title;

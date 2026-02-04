@@ -193,8 +193,9 @@
 }
 
 .badge-img {
-  width: 84px;
-  height: 84px;
+  width: 95%;
+  height: 95%;
+  border-radius: 15px;
   object-fit: contain;
   z-index: 1;
 }
