@@ -200,4 +200,6 @@ export default function MyBadges() {
         </div>
     </main>
   );
+
 }
+
