@@ -134,7 +134,7 @@ const AddGroupBudgetModal=({userId,onClose,onSuccess})=>{
                 <form onSubmit={handleSubmit} className="formStyle">
                     <div className="form-content">
                         <label htmlFor="title">그룹가계부 이름</label>
-                        <input type="text" id="title" name="title" value={formData.title} onChange={handleChange} placeholder="이름" required/> 가계부
+                        <input type="text" id="title" name="title" value={formData.title} onChange={handleChange} placeholder="이름" required/>
                         
                         <div className='checkbox-group'>
                             <input type="checkBox" 

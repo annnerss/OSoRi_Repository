@@ -23,7 +23,7 @@ const MyPage = () => {
   const [transactions, setTransactions] = useState([]);
   const { notifications, setNotifications } = useAlarmSocket(user?.loginId);
   const [isNotiOpen, setIsNotiOpen] = useState(false);
-  const { groupBudgetList = [], isLoading: isGroupLoading } = useGroupBudgets(user?.userId);
+  const { groupBudgetList = [], isLoading: isGroupLoading, fetchGroupBudgetList } = useGroupBudgets(user?.userId);
   const serverAvatarUrl = user?.changeName 
     ? `http://localhost:8080/osori/upload/profiles/${user.changeName}` 
     : "";
@@ -256,20 +256,7 @@ const MyPage = () => {
                 ))
               }
             </ul>
-            <div className="buttons-wrapper">
-              <button 
-                  onClick={() => setIsModalOpen(true)}
-                  className="menu-item btn"
-              >
-              새로운 가계부 만들기
-              </button>
-              <button 
-                  onClick={() => setIsModalOpen2(true)}
-                  className="menu-item btn"
-              >
-              이전 가계부
-              </button>
-            </div>
+            
             
 
             {isModalOpen && (
@@ -292,6 +279,20 @@ const MyPage = () => {
                 }}
               />
             )}
+          </div>
+          <div className="buttons-wrapper">
+              <button 
+                  onClick={() => setIsModalOpen(true)}
+                  className="menu-item btn"
+              >
+              새로운 가계부 만들기
+              </button>
+              <button 
+                  onClick={() => setIsModalOpen2(true)}
+                  className="menu-item btn"
+              >
+              이전 가계부
+              </button>
           </div>
         </div>
       </div>
