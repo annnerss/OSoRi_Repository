@@ -219,8 +219,8 @@ const MyPage = () => {
             <h3>🏠 내 가계부</h3>
           </div>
           <div className="account-detail">
-            <p className="amount-title">이번 달 지출 </p>
-            <p className="amount">{totalMonthlyExpenditure.toLocaleString()}원</p>
+            <p className="amount-title"  style={{ justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>이번 달 지출 </p>
+            <p className="amount" style={{ justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>{totalMonthlyExpenditure.toLocaleString()}원</p>
             
             <ZScoreNotification transactions={transactions} currentDate={currentDate}/>
           </div>
